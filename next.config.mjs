@@ -1,0 +1,55 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    reactStrictMode: true,
+    poweredByHeader: false,
+    serverExternalPackages: ['pdfjs-dist'],
+    webpack: (config, { isServer, webpack }) => {
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            canvas: false,
+        };
+        if (!isServer) {
+            config.resolve.fallback = {
+                ...config.resolve.fallback,
+                fs: false,
+                path: false,
+                stream: false,
+                crypto: false,
+                os: false,
+                canvas: false,
+            };
+            config.plugins.push(
+                new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+                    resource.request = resource.request.replace(/^node:/, '');
+                })
+            );
+        }
+        return config;
+    },
+    headers: async() => [{
+        source: '/:path*',
+        headers: [{
+                key: 'X-DNS-Prefetch-Control',
+                value: 'on',
+            },
+            {
+                key: 'X-Content-Type-Options',
+                value: 'nosniff',
+            },
+            {
+                key: 'X-Frame-Options',
+                value: 'DENY',
+            },
+            {
+                key: 'Referrer-Policy',
+                value: 'strict-origin-when-cross-origin',
+            },
+            {
+                key: 'Permissions-Policy',
+                value: 'camera=(), microphone=(), geolocation=()',
+            },
+        ],
+    }, ],
+};
+
+export default nextConfig;
