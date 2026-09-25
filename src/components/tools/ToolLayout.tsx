@@ -22,6 +22,8 @@ import { ResultPanel } from '@/components/common/ResultPanel';
 import { Badge } from '@/components/common/Badge';
 import { normalizeError, AppError } from '@/lib/errors/AppError';
 
+import { executeTool } from '@/core/execution/executeTool';
+
 interface ToolLayoutProps {
   tool: IToolDefinition;
 }
@@ -40,8 +42,9 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
   const [output, setOutput] = useState<ProcessedOutput | null>(null);
   const [error, setError] = useState<AppError | null>(null);
 
-  // Cancellation token
+  // Cancellation token and active server jobId tracker (§20)
   const abortControllerRef = useRef<AbortController | null>(null);
+  const activeJobIdRef = useRef<string | null>(null);
 
   // File selection & validation
   const handleFilesSelected = (newFiles: File[]) => {
@@ -78,9 +81,9 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
     setError(null);
   };
 
-  // Execution
+  // Execution via Unified Execution Router (§18)
   const handleProcess = async () => {
-    if (files.length === 0) return;
+    if (files.length === 0 && manifest.id !== 'qr-code-generator') return;
 
     setError(null);
     setState('processing');
@@ -88,13 +91,18 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
+    activeJobIdRef.current = null;
 
     try {
-      const result = await tool.process({
+      const result = await executeTool({
+        tool,
         files,
         options,
         onProgress: (p) => setProgress(p),
         signal: controller.signal,
+        onJobAssigned: (jobId) => {
+          activeJobIdRef.current = jobId;
+        },
       });
 
       setOutput(result);
@@ -116,10 +124,14 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
       }
     } finally {
       abortControllerRef.current = null;
+      activeJobIdRef.current = null;
     }
   };
 
   const handleCancel = () => {
+    if (activeJobIdRef.current) {
+      fetch(`/api/jobs/${activeJobIdRef.current}/cancel`, { method: 'POST' }).catch(() => {});
+    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -231,7 +243,28 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
           {/* State: File Selection & Options Configuration */}
           {state !== 'completed' && (
             <>
-              {files.length === 0 ? (
+              {manifest.id === 'qr-code-generator' ? (
+                <div className="space-y-6">
+                  {OptionsComponent && (
+                    <OptionsComponent
+                      options={options}
+                      onChange={setOptions}
+                      disabled={state === 'processing'}
+                    />
+                  )}
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={handleProcess}
+                      disabled={state === 'processing'}
+                      className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-7 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      <Play className="h-4 w-4 fill-white" />
+                      <span>Export Final QR Code Document</span>
+                    </button>
+                  </div>
+                </div>
+              ) : files.length === 0 ? (
                 <FileDropZone
                   accept={acceptFormats}
                   maxFiles={manifest.limits.maxFiles}

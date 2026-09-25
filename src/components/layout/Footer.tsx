@@ -79,18 +79,18 @@ export function Footer() {
             Sign Up
           </Link>
           <Link href="/pdf-tools" className="block text-blue-200 hover:text-white transition">
-            All 16 Tools Catalog
+            All 17 Tools Catalog
           </Link>
         </div>
 
-        {/* Privacy First */}
+        {/* Privacy & Security */}
         <div className="space-y-3 col-span-2 md:col-span-1">
-          <h3 className="font-bold text-white text-base">Privacy Guarantee</h3>
+          <h3 className="font-bold text-white text-base">Privacy &amp; Security</h3>
           <p className="text-xs text-blue-200 leading-relaxed">
-            ToolNova runs every tool directly inside your browser. No files are uploaded to any server. Your documents remain strictly private.
+            Choose from browser-based tools and server-powered conversions. ToolNova selects the appropriate processing method for each tool. Server-assisted jobs use isolated temporary sandboxes with automated cleanup.
           </p>
           <div className="inline-block rounded-md bg-blue-800/90 border border-blue-700 px-3 py-1 text-xs text-emerald-300 font-semibold">
-            🛡️ 100% In-Browser Execution
+            🛡️ Ephemeral &amp; In-Browser Security
           </div>
         </div>
       </div>

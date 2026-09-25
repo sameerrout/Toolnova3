@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import crypto from 'crypto';
+import { resourceManager, ProcessingStrategy } from '@/lib/server/resourceManager';
 
 export type JobStatus =
   | 'queued'
@@ -13,12 +14,22 @@ export type JobStatus =
   | 'failed'
   | 'cancelled';
 
+export interface JobProgressInfo {
+  progress: number;
+  stage: string;
+  currentPage?: number;
+  totalPages?: number;
+  updatedAt: number;
+}
+
 export interface JobMetadata {
   jobId: string;
   toolId: string;
   status: JobStatus;
   progress: number;
   stage: string;
+  currentPage?: number;
+  totalPages?: number;
   createdAt: number;
   updatedAt: number;
   inputFileName: string;
@@ -28,7 +39,7 @@ export interface JobMetadata {
   outputMimeType?: string;
   errorCode?: string;
   errorMessage?: string;
-  processingStrategy: 'FAST_MEMORY' | 'CHUNKED' | 'DISK_BACKED' | 'CLIENT_SIDE';
+  processingStrategy: ProcessingStrategy;
 }
 
 interface ActiveJob {
@@ -38,7 +49,9 @@ interface ActiveJob {
   outputPath?: string;
 }
 
-const JOBS_BASE_DIR = path.join(process.cwd(), 'backend', 'storage', 'jobs');
+const JOBS_BASE_DIR =
+  process.env.TOOLNOVA_TEMP_DIR ||
+  path.join(process.cwd(), 'backend', 'storage', 'jobs');
 
 // Ensure base storage directory exists
 if (!fs.existsSync(JOBS_BASE_DIR)) {
@@ -47,29 +60,77 @@ if (!fs.existsSync(JOBS_BASE_DIR)) {
 
 class JobManager {
   private jobs: Map<string, ActiveJob> = new Map();
+  private pythonBin: string;
+  private retentionHours: number;
 
   constructor() {
-    // Run periodic cleanup every 15 minutes
+    this.pythonBin = process.env.TOOLNOVA_PYTHON_BIN || 'python';
+    this.retentionHours = parseFloat(process.env.TOOLNOVA_JOB_RETENTION_HOURS || '1');
+
+    // Process Restart Recovery (§8): Restore persistent job states from storage directory
+    this.recoverJobsFromStorage();
+
+    // Run periodic cleanup every 10 minutes (§14, §21, §58)
     if (typeof setInterval !== 'undefined') {
-      setInterval(() => this.cleanupAbandonedJobs(), 15 * 60 * 1000).unref();
+      setInterval(() => this.cleanupAbandonedJobs(), 10 * 60 * 1000).unref();
     }
   }
 
   /**
-   * Sanitizes filenames to prevent path traversal or special shell characters.
+   * Recovers existing jobs from filesystem across server restarts (§8).
    */
-  private sanitizeFilename(name: string): string {
-    return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  private recoverJobsFromStorage(): void {
+    try {
+      if (!fs.existsSync(JOBS_BASE_DIR)) return;
+      const entries = fs.readdirSync(JOBS_BASE_DIR, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const jobDir = path.join(JOBS_BASE_DIR, entry.name);
+          const metaPath = path.join(jobDir, 'metadata.json');
+
+          if (fs.existsSync(metaPath)) {
+            try {
+              const meta: JobMetadata = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+              // If previously running when server crashed/restarted, mark as failed/recoverable
+              if (meta.status === 'processing' || meta.status === 'queued') {
+                meta.status = 'failed';
+                meta.errorCode = 'SERVER_RESTARTED';
+                meta.errorMessage = 'The processing server was restarted. Please re-submit your document.';
+              }
+              this.jobs.set(meta.jobId, {
+                meta,
+                jobDir,
+              });
+            } catch {}
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[JobManager] Error during job recovery from storage:', err);
+    }
   }
 
   /**
-   * Validates file signatures (magic bytes) to ensure file integrity.
+   * Sanitizes filenames to prevent path traversal or special shell characters (§9, §22).
    */
-  private validateFileSignature(buffer: Buffer, expectedType: 'pdf' | 'docx' | 'pptx' | 'image'): boolean {
+  public sanitizeFilename(name: string): string {
+    const base = path.basename(name || 'document');
+    let sanitized = base.replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (!sanitized || sanitized === '.' || sanitized === '..') {
+      sanitized = 'document';
+    }
+    return sanitized.slice(0, 100);
+  }
+
+  /**
+   * Validates file signatures (magic bytes) to ensure file integrity (§20, §22).
+   */
+  public validateFileSignature(buffer: Buffer, expectedCategory: string): boolean {
     if (buffer.length < 4) return false;
 
     // PDF magic bytes: %PDF (0x25 0x50 0x44 0x46)
-    if (expectedType === 'pdf') {
+    if (expectedCategory === 'pdf') {
       return (
         buffer[0] === 0x25 &&
         buffer[1] === 0x50 &&
@@ -79,7 +140,7 @@ class JobManager {
     }
 
     // DOCX / PPTX are ZIP containers: PK\x03\x04 (0x50 0x4b 0x03 0x04)
-    if (expectedType === 'docx' || expectedType === 'pptx') {
+    if (expectedCategory === 'docx' || expectedCategory === 'pptx') {
       return (
         buffer[0] === 0x50 &&
         buffer[1] === 0x4b &&
@@ -100,31 +161,44 @@ class JobManager {
     fileBuffer: Buffer,
     options: Record<string, any> = {}
   ): Promise<JobMetadata> {
+    // Validate file signature based on tool (§22, §29)
+    let expectedCategory = '';
+    if (toolId === 'pdf-to-word' || toolId === 'pdf-to-powerpoint') {
+      expectedCategory = 'pdf';
+    } else if (toolId === 'word-to-pdf') {
+      expectedCategory = 'docx';
+    } else if (toolId === 'powerpoint-to-pdf') {
+      expectedCategory = 'pptx';
+    }
+
+    if (expectedCategory && !this.validateFileSignature(fileBuffer, expectedCategory)) {
+      throw new Error(`INVALID_FILE: The uploaded file does not match the expected ${expectedCategory.toUpperCase()} format or is corrupted.`);
+    }
+
     const jobId = crypto.randomUUID();
     const safeName = this.sanitizeFilename(rawFilename);
     const jobDir = path.join(JOBS_BASE_DIR, jobId);
 
-    // Structure: input/, pages/, chunks/, output/
+    // Isolated directory tree: input/, pages/, chunks/, working/, output/ (§9)
     const inputDir = path.join(jobDir, 'input');
     const pagesDir = path.join(jobDir, 'pages');
     const chunksDir = path.join(jobDir, 'chunks');
+    const workingDir = path.join(jobDir, 'working');
     const outputDir = path.join(jobDir, 'output');
 
     fs.mkdirSync(inputDir, { recursive: true });
     fs.mkdirSync(pagesDir, { recursive: true });
     fs.mkdirSync(chunksDir, { recursive: true });
+    fs.mkdirSync(workingDir, { recursive: true });
     fs.mkdirSync(outputDir, { recursive: true });
 
     const inputPath = path.join(inputDir, safeName);
     fs.writeFileSync(inputPath, fileBuffer);
 
-    // Adaptive processing strategy determination (§7)
-    let strategy: JobMetadata['processingStrategy'] = 'FAST_MEMORY';
-    if (fileBuffer.length > 50 * 1024 * 1024) {
-      strategy = 'DISK_BACKED';
-    } else if (fileBuffer.length > 10 * 1024 * 1024) {
-      strategy = 'CHUNKED';
-    }
+    // Adaptive Strategy Selection via Server ResourceManager (§5, §8)
+    const strategy = resourceManager.selectProcessingStrategy(fileBuffer.length);
+    const cost = resourceManager.estimateJobCost(fileBuffer.length);
+    resourceManager.reserveResources(jobId, cost);
 
     const meta: JobMetadata = {
       jobId,
@@ -146,8 +220,13 @@ class JobManager {
 
     this.jobs.set(jobId, activeJob);
     this.persistJobMetadata(jobDir, meta);
+    this.persistJobProgress(jobDir, {
+      progress: 0,
+      stage: 'Job queued',
+      updatedAt: Date.now(),
+    });
 
-    // Asynchronously dispatch the job worker
+    // Asynchronously dispatch the specialized worker
     this.dispatchWorker(jobId, inputPath, outputDir, options).catch((err) => {
       console.error(`[JobManager] Error in worker for job ${jobId}:`, err);
       this.failJob(jobId, 'PROCESSING_FAILED', 'Internal processing error occurred.');
@@ -178,7 +257,7 @@ class JobManager {
   }
 
   /**
-   * Cancels a running job, terminates child processes, and wipes temporary files (§12).
+   * Cancels a running job, terminates child processes, and wipes temporary files (§12, §20).
    */
   public async cancelJob(jobId: string): Promise<boolean> {
     const job = this.jobs.get(jobId);
@@ -186,7 +265,6 @@ class JobManager {
 
     if (job.process && !job.process.killed) {
       job.process.kill('SIGTERM');
-      // Force kill after grace period
       setTimeout(() => {
         try {
           if (job.process && !job.process.killed) {
@@ -200,6 +278,7 @@ class JobManager {
     job.meta.stage = 'Job was cancelled by the user.';
     job.meta.updatedAt = Date.now();
 
+    resourceManager.releaseResources(jobId);
     this.persistJobMetadata(job.jobDir, job.meta);
     this.cleanDirectory(job.jobDir);
     this.jobs.delete(jobId);
@@ -243,6 +322,10 @@ class JobManager {
       scriptName = 'word_to_pdf.py';
       outFileName = `${baseName}.pdf`;
       outMime = 'application/pdf';
+    } else if (job.meta.toolId === 'powerpoint-to-pdf') {
+      scriptName = 'pptx_to_pdf.py';
+      outFileName = `${baseName}.pdf`;
+      outMime = 'application/pdf';
     } else {
       this.failJob(jobId, 'UNSUPPORTED_TOOL', `Backend worker for tool ${job.meta.toolId} is not available.`);
       return;
@@ -252,9 +335,9 @@ class JobManager {
     const outputPath = path.join(outputDir, outFileName);
     job.outputPath = outputPath;
 
-    // Execute Python worker with isolated arguments
+    // Execute Python worker using configurable python executable (§23)
     const args = [scriptPath, '--input', inputPath, '--output', outputPath];
-    const proc = spawn('python', args, {
+    const proc = spawn(this.pythonBin, args, {
       cwd: process.cwd(),
       env: { ...process.env, PYTHONUNBUFFERED: '1' },
     });
@@ -275,18 +358,33 @@ class JobManager {
             if (data.statusText) {
               job.meta.stage = data.statusText;
             }
+            if (data.currentPage !== undefined) {
+              job.meta.currentPage = data.currentPage;
+            }
+            if (data.totalPages !== undefined) {
+              job.meta.totalPages = data.totalPages;
+            }
             job.meta.updatedAt = Date.now();
+
+            this.persistJobProgress(job.jobDir, {
+              progress: job.meta.progress,
+              stage: job.meta.stage,
+              currentPage: job.meta.currentPage,
+              totalPages: job.meta.totalPages,
+              updatedAt: job.meta.updatedAt,
+            });
           } catch {}
         }
       }
     });
 
     proc.stderr.on('data', (chunk: Buffer) => {
-      // Worker stderr logging (kept isolated from public output)
       console.warn(`[Worker stderr ${jobId}]:`, chunk.toString().trim());
     });
 
     proc.on('close', (code) => {
+      resourceManager.releaseResources(jobId);
+
       if (job.meta.status === 'cancelled') return;
 
       if (code === 0 && fs.existsSync(outputPath)) {
@@ -305,6 +403,11 @@ class JobManager {
         job.meta.updatedAt = Date.now();
 
         this.persistJobMetadata(job.jobDir, job.meta);
+        this.persistJobProgress(job.jobDir, {
+          progress: 100,
+          stage: 'Completed',
+          updatedAt: Date.now(),
+        });
       } else {
         this.failJob(
           jobId,
@@ -315,13 +418,14 @@ class JobManager {
     });
 
     proc.on('error', (err) => {
+      resourceManager.releaseResources(jobId);
       console.error(`[Worker error ${jobId}]:`, err);
       this.failJob(jobId, 'WORKER_CRASH', 'The processing worker encountered an unexpected system error.');
     });
   }
 
   /**
-   * Marks a job as failed with a sanitized, user-friendly error code (§19).
+   * Marks a job as failed with a sanitized, user-friendly error code (§19, §30).
    */
   private failJob(jobId: string, errorCode: string, errorMessage: string) {
     const job = this.jobs.get(jobId);
@@ -333,6 +437,7 @@ class JobManager {
     job.meta.stage = errorMessage;
     job.meta.updatedAt = Date.now();
 
+    resourceManager.releaseResources(jobId);
     this.persistJobMetadata(job.jobDir, job.meta);
   }
 
@@ -361,6 +466,13 @@ class JobManager {
     } catch {}
   }
 
+  private persistJobProgress(jobDir: string, progress: JobProgressInfo) {
+    try {
+      const progPath = path.join(jobDir, 'progress.json');
+      fs.writeFileSync(progPath, JSON.stringify(progress, null, 2), 'utf-8');
+    } catch {}
+  }
+
   /**
    * Safely deletes a directory and all nested contents.
    */
@@ -375,10 +487,10 @@ class JobManager {
   }
 
   /**
-   * Automatically cleans abandoned jobs older than 1 hour (§14, §58).
+   * Automatically cleans abandoned jobs older than retention TTL (§14, §21, §58).
    */
   public cleanupAbandonedJobs(): void {
-    const ONE_HOUR = 60 * 60 * 1000;
+    const retentionMs = this.retentionHours * 60 * 60 * 1000;
     const now = Date.now();
 
     try {
@@ -402,7 +514,7 @@ class JobManager {
             mtime = fs.statSync(dirPath).mtimeMs;
           }
 
-          if (now - mtime > ONE_HOUR) {
+          if (now - mtime > retentionMs) {
             this.cleanDirectory(dirPath);
             this.jobs.delete(entry.name);
           }

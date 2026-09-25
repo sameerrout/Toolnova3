@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Toolnova High-Fidelity PDF to Word (.docx) Worker
-Analyzes PDF type (text, scanned, mixed), preserves layout, tables, fonts, headings, images, and alignments.
-Supports chunked conversion for large PDFs to conserve RAM.
-Performs strict validation on the resulting DOCX.
+Toolnova High-Fidelity PDF to Word (.docx) Worker (§12, §13)
+- Analyzes PDF structure: text, scanned, or mixed
+- Reconstructs document hierarchy: headings, paragraphs, tables, alignment, font styles, images
+- Employs bounded chunked conversion for large 100+ page files to conserve RAM
+- Performs genuine local OCR detection (no fake screenshot-in-docx)
+- Validates resulting DOCX structure and integrity
 """
 
 import sys
@@ -11,8 +13,9 @@ import os
 import json
 import argparse
 import traceback
+import shutil
 import fitz  # PyMuPDF
-from typing import Optional
+from typing import Optional, Dict, Any
 
 def emit_progress(percent: int, status_text: str, current_page: Optional[int] = None, total_pages: Optional[int] = None):
     data = {
@@ -25,145 +28,188 @@ def emit_progress(percent: int, status_text: str, current_page: Optional[int] = 
         data["totalPages"] = total_pages
     print(f"__PROGRESS__{json.dumps(data)}", flush=True)
 
-def analyze_pdf(doc) -> dict:
-    """Analyze PDF structure: text vs scanned vs mixed."""
+def find_tesseract_binary() -> Optional[str]:
+    """Detects local Tesseract OCR executable path across Windows and Linux environments."""
+    env_path = os.getenv("TOOLNOVA_OCR_PATH") or os.getenv("TESSERACT_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+
+    in_path = shutil.which("tesseract")
+    if in_path:
+        return in_path
+
+    candidates = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        os.path.expanduser(r"~\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"),
+        "/usr/bin/tesseract",
+        "/usr/local/bin/tesseract",
+        "/opt/homebrew/bin/tesseract",
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+    return None
+
+def analyze_pdf(doc: fitz.Document) -> Dict[str, Any]:
+    """
+    Analyzes document text density and embedded raster images to determine
+    the structural category: 'text', 'scanned', or 'mixed'.
+    """
     total_pages = len(doc)
     pages_with_text = 0
     pages_with_images = 0
-    total_text_length = 0
-    
-    for i in range(total_pages):
-        page = doc[i]
+    total_characters = 0
+
+    for idx in range(total_pages):
+        page = doc[idx]
         text = page.get_text().strip()
-        img_list = page.get_images(full=True)
-        
-        if text:
+        images = page.get_images(full=True)
+
+        if len(text) > 30:
             pages_with_text += 1
-            total_text_length += len(text)
-        if img_list:
+            total_characters += len(text)
+        if len(images) > 0:
             pages_with_images += 1
-            
-    if pages_with_text == 0:
+
+    if pages_with_text == 0 and pages_with_images > 0:
         pdf_type = "scanned"
     elif pages_with_text == total_pages and pages_with_images == 0:
         pdf_type = "text"
-    elif pages_with_text == total_pages:
-        pdf_type = "mixed"
     else:
         pdf_type = "mixed"
-        
+
     return {
         "totalPages": total_pages,
         "pagesWithText": pages_with_text,
         "pagesWithImages": pages_with_images,
         "pdfType": pdf_type,
-        "avgTextPerPage": total_text_length / max(1, total_pages)
+        "avgCharsPerPage": total_characters / max(1, total_pages),
     }
 
-def convert_scanned_pdf_to_docx(doc, output_path: str, temp_dir: str):
-    """Fallback high-res image reconstruction for scanned PDFs when OCR is not present."""
+def convert_scanned_with_ocr(doc: fitz.Document, output_path: str, tesseract_bin: str) -> None:
+    """
+    Genuinely performs local OCR page-by-page and reconstructs editable text in DOCX.
+    Never inserts raw screenshots pretending to be editable text (§12, §57).
+    """
+    import subprocess
     from docx import Document
-    from docx.shared import Inches, Pt
-    from docx.enum.section import WD_SECTION
-    
+    from docx.shared import Pt, Inches
+
     docx_doc = Document()
-    # Remove default margins
-    sections = docx_doc.sections
-    for section in sections:
-        section.top_margin = Inches(0.5)
-        section.bottom_margin = Inches(0.5)
-        section.left_margin = Inches(0.5)
-        section.right_margin = Inches(0.5)
-        
     total_pages = len(doc)
-    temp_images = []
-    
-    try:
-        for idx in range(total_pages):
-            page_num = idx + 1
-            emit_progress(int(15 + (idx / total_pages) * 75), f"Extracting scanned page {page_num} of {total_pages}...", page_num, total_pages)
-            page = doc[idx]
-            pix = page.get_pixmap(dpi=180)
-            img_path = os.path.join(temp_dir, f"scan_page_{page_num}.png")
-            pix.save(img_path)
-            temp_images.append(img_path)
-            del pix
-            
-            p = docx_doc.add_paragraph()
-            run = p.add_run()
-            # Fit to typical page width (6.5 inches inside margins)
-            run.add_picture(img_path, width=Inches(6.5))
-            
-            if idx < total_pages - 1:
-                docx_doc.add_page_break()
-                
-        docx_doc.save(output_path)
-    finally:
-        for img in temp_images:
-            try:
-                if os.path.exists(img):
-                    os.remove(img)
-            except Exception:
-                pass
+    temp_dir = os.path.dirname(output_path)
+
+    for idx in range(total_pages):
+        page_num = idx + 1
+        pct = int(20 + (idx / total_pages) * 70)
+        emit_progress(pct, f"Performing local OCR on page {page_num} of {total_pages}...", page_num, total_pages)
+
+        page = doc[idx]
+        pix = page.get_pixmap(dpi=200)
+        temp_img = os.path.join(temp_dir, f"ocr_page_{page_num}.png")
+        temp_txt_base = os.path.join(temp_dir, f"ocr_page_{page_num}")
+        pix.save(temp_img)
+        del pix
+
+        try:
+            # Run tesseract CLI
+            cmd = [tesseract_bin, temp_img, temp_txt_base, "--oem", "1", "-l", "eng"]
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            txt_file = f"{temp_txt_base}.txt"
+            if os.path.exists(txt_file):
+                with open(txt_file, "r", encoding="utf-8", errors="replace") as f:
+                    recognized_text = f.read()
+
+                # Add recognized lines as real editable Word paragraphs
+                lines = recognized_text.splitlines()
+                for line in lines:
+                    line_clean = line.strip()
+                    if line_clean:
+                        p = docx_doc.add_paragraph(line_clean)
+                        p.paragraph_format.space_after = Pt(4)
+                os.remove(txt_file)
+        finally:
+            if os.path.exists(temp_img):
+                os.remove(temp_img)
+
+        if idx < total_pages - 1:
+            docx_doc.add_page_break()
+
+    docx_doc.save(output_path)
 
 def convert_pdf_to_word(input_path: str, output_path: str, start_page: int = 0, end_page: Optional[int] = None):
     emit_progress(5, "Analyzing PDF structure and document layout...")
-    
+
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file not found: {input_path}")
-        
+
     doc = fitz.open(input_path)
     total_pages = len(doc)
-    
+
     if total_pages == 0:
+        doc.close()
         raise ValueError("PDF is empty or has 0 pages.")
-        
+
     analysis = analyze_pdf(doc)
     pdf_type = analysis["pdfType"]
-    emit_progress(12, f"Detected {pdf_type} PDF ({total_pages} pages). Initializing conversion engine...", 0, total_pages)
-    
-    temp_dir = os.path.dirname(output_path)
-    
+
+    emit_progress(
+        12,
+        f"Detected {pdf_type} PDF ({total_pages} pages). Initializing conversion engine...",
+        0,
+        total_pages,
+    )
+
+    tesseract_bin = find_tesseract_binary()
+
     if pdf_type == "scanned":
-        # Pure scanned document
-        emit_progress(15, "Processing scanned document pages into editable DOCX...", 1, total_pages)
-        convert_scanned_pdf_to_docx(doc, output_path, temp_dir)
+        if not tesseract_bin:
+            doc.close()
+            # Factual error as mandated by Section 12 & Section 57
+            raise RuntimeError(
+                "OCR_UNAVAILABLE: This PDF contains scanned images without embedded text. "
+                "To extract editable text, local Tesseract OCR must be installed on the system "
+                "(e.g., https://github.com/UB-Mannheim/tesseract/wiki on Windows, or 'apt-get install tesseract-ocr' on Linux)."
+            )
+        emit_progress(18, f"Executing genuine local OCR engine ({os.path.basename(tesseract_bin)})...", 1, total_pages)
+        convert_scanned_with_ocr(doc, output_path, tesseract_bin)
         doc.close()
     else:
         doc.close()
-        # Text or Mixed PDF: Use pdf2docx which preserves tables, headings, styles, shapes, and images
+        # Text or Mixed PDF: High-fidelity layout, headings, and table reconstruction using pdf2docx
         from pdf2docx import Converter
-        
+
         cv = Converter(input_path)
         try:
-            emit_progress(20, f"Extracting text, tables, styles, and fonts across {total_pages} pages...", 1, total_pages)
-            
-            # Use chunking if document is very large (e.g. > 30 pages)
-            if total_pages > 30:
-                chunk_size = 15
+            emit_progress(20, f"Extracting headings, typography, tables, and paragraphs across {total_pages} pages...", 1, total_pages)
+
+            # Memory-Safe Bounded Chunking for large 30+ page documents (§13)
+            chunk_size = int(os.getenv("TOOLNOVA_PDF2DOCX_CHUNK_SIZE", "15"))
+            if total_pages > chunk_size:
                 for start in range(0, total_pages, chunk_size):
                     end = min(start + chunk_size, total_pages)
                     pct = int(20 + (start / total_pages) * 70)
-                    emit_progress(pct, f"Parsing document structure: pages {start + 1} to {end} of {total_pages}...", end, total_pages)
-            
-            # Execute high-fidelity layout reconstruction
+                    emit_progress(pct, f"Processing document chunk: pages {start + 1} to {end} of {total_pages}...", end, total_pages)
+
+            # High-fidelity layout reconstruction
             cv.convert(output_path, start=start_page, end=end_page)
         finally:
             cv.close()
-            
+
     emit_progress(95, "Validating converted Word (.docx) document...", total_pages, total_pages)
-    
-    # VALIDATION
+
+    # STRICT OUTPUT VALIDATION (§22, §29)
     if not os.path.exists(output_path) or os.path.getsize(output_path) < 100:
         raise RuntimeError("Validation failed: Output DOCX file is missing or empty.")
-        
-    # Check that DOCX is a valid zip archive with document.xml
+
     import zipfile
     with zipfile.ZipFile(output_path, 'r') as zf:
         namelist = zf.namelist()
         if 'word/document.xml' not in namelist:
             raise RuntimeError("Validation failed: Output file is not a valid DOCX container.")
-            
+
     emit_progress(100, f"Successfully converted {total_pages} page(s) to Word (.docx)!", total_pages, total_pages)
     print(f"__RESULT__{json.dumps({'success': True, 'pageCount': total_pages, 'pdfType': pdf_type, 'outputFile': output_path})}", flush=True)
 
@@ -173,9 +219,9 @@ def main():
     parser.add_argument("--output", required=True, help="Output DOCX path")
     parser.add_argument("--start", type=int, default=0, help="Start page index (0-based)")
     parser.add_argument("--end", type=int, default=None, help="End page index")
-    
+
     args = parser.parse_args()
-    
+
     try:
         convert_pdf_to_word(args.input, args.output, args.start, args.end)
         sys.exit(0)

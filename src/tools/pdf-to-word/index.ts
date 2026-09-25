@@ -11,7 +11,7 @@ export const pdfToWordManifest: ToolManifest = {
   name: 'PDF to Word',
   category: 'pdf',
   description:
-    'Convert PDF documents into editable Microsoft Word (.docx) documents client-side.',
+    'Convert PDF documents into editable Microsoft Word (.docx) documents with typography and table reconstruction.',
   version: '1.0.0',
   executionMode: 'HYBRID',
   runtime: 'browser',
@@ -20,7 +20,7 @@ export const pdfToWordManifest: ToolManifest = {
   permissions: {
     readInputFiles: true,
     writeOutputFiles: true,
-    networkAccess: false,
+    networkAccess: true,
     accessOtherFiles: false,
   },
   capabilities: [
@@ -29,14 +29,20 @@ export const pdfToWordManifest: ToolManifest = {
     'LINE_RECONSTRUCTION',
     'PARAGRAPH_DETECTION',
     'PAGE_BREAK_PRESERVATION',
+    'SERVER_WORKER_PIPELINE',
   ],
   limits: {
     maxFiles: 1,
-    maxFileSizeMb: 50,
-    maxTotalSizeMb: 50,
+    maxFileSizeMb: 100,
+    maxTotalSizeMb: 100,
     allowedMimeTypes: ['application/pdf'],
   },
-  offlineSupport: true,
+  offlineSupport: false,
+  processingEngine: 'hybrid',
+  supportsClientSide: true,
+  supportsServerSide: true,
+  supportsChunking: true,
+  preferredStrategy: 'CHUNKED',
 };
 
 interface TextItemObj {

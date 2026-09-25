@@ -9,7 +9,7 @@
         "start": "next start",
         "lint": "next lint",
         "type-check": "tsc --noEmit",
-        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs"
+        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs && node tests/verifyUnit.mjs"
     },
     "dependencies": {
         "@pdfsmaller/pdf-encrypt": "^1.2.0",

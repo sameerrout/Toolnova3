@@ -154,6 +154,50 @@ def convert_with_docx_fallback(input_path: str, output_path: str) -> int:
     pdf.close()
     return page_count
 
+def find_libreoffice_binary() -> Optional[str]:
+    """Detects local LibreOffice executable across Windows, macOS, and Linux."""
+    import shutil
+    env_path = os.getenv("LIBREOFFICE_PATH") or os.getenv("SOFFICE_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+
+    in_path = shutil.which("soffice") or shutil.which("libreoffice")
+    if in_path:
+        return in_path
+
+    candidates = [
+        r"C:\Program Files\LibreOffice\program\soffice.exe",
+        r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        "/usr/bin/soffice",
+        "/usr/bin/libreoffice",
+        "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+    return None
+
+def convert_with_libreoffice(input_path: str, output_path: str, soffice_bin: str) -> int:
+    """Headless conversion via local LibreOffice instance."""
+    import subprocess
+    import fitz
+    emit_progress(30, "Rendering document via local headless LibreOffice engine...")
+    out_dir = os.path.dirname(output_path)
+    cmd = [soffice_bin, "--headless", "--convert-to", "pdf", "--outdir", out_dir, input_path]
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    base = os.path.splitext(os.path.basename(input_path))[0]
+    expected_out = os.path.join(out_dir, f"{base}.pdf")
+    if expected_out != output_path and os.path.exists(expected_out):
+        if os.path.exists(output_path):
+            os.remove(output_path)
+        os.rename(expected_out, output_path)
+
+    pdf = fitz.open(output_path)
+    count = len(pdf)
+    pdf.close()
+    return count
+
 def convert_word_to_pdf(input_path: str, output_path: str):
     emit_progress(5, "Verifying Word document and determining conversion engine...")
     
@@ -161,17 +205,28 @@ def convert_word_to_pdf(input_path: str, output_path: str):
         raise FileNotFoundError(f"Input file not found: {input_path}")
         
     page_count = 0
-    used_engine = "win32"
+    used_engine = "win32_word"
     
-    # Try native Word COM first (optimal fidelity)
+    # Tier 1: Try native Word COM first (optimal fidelity on Windows)
     try:
         page_count = convert_with_win32_word(input_path, output_path)
-    except Exception as e:
-        sys.stderr.write(f"Word COM automation unavailable or failed: {e}. Falling back to document layout engine.\n")
-        used_engine = "headless_fallback"
-        page_count = convert_with_docx_fallback(input_path, output_path)
+    except Exception as e_word:
+        # Tier 2: Try LibreOffice if available
+        soffice_bin = find_libreoffice_binary()
+        if soffice_bin:
+            try:
+                used_engine = "libreoffice"
+                page_count = convert_with_libreoffice(input_path, output_path, soffice_bin)
+            except Exception as e_lo:
+                sys.stderr.write(f"LibreOffice failed ({e_lo}). Trying document layout fallback.\n")
+                used_engine = "headless_fallback"
+                page_count = convert_with_docx_fallback(input_path, output_path)
+        else:
+            sys.stderr.write(f"Word COM unavailable ({e_word}) and LibreOffice not found. Using document layout engine.\n")
+            used_engine = "headless_fallback"
+            page_count = convert_with_docx_fallback(input_path, output_path)
         
-    emit_progress(90, "Validating generated PDF document structure...", )
+    emit_progress(90, "Validating generated PDF document structure...")
     
     # STRICT VALIDATION
     if not os.path.exists(output_path) or os.path.getsize(output_path) < 100:

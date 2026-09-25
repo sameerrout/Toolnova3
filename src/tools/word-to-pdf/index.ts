@@ -21,26 +21,32 @@ export const wordToPdfManifest: ToolManifest = {
   permissions: {
     readInputFiles: true,
     writeOutputFiles: true,
-    networkAccess: false,
+    networkAccess: true,
     accessOtherFiles: false,
   },
   capabilities: [
     'DOCX_PARSING',
     'PDF_LAYOUT_ENGINE',
     'AUTO_PAGINATION',
-    'WORD_WRAPPING',
-    'CLIENT_SIDE_ONLY',
+    'NATIVE_WORD_COM',
+    'LIBREOFFICE_HEADLESS',
+    'SERVER_WORKER_PIPELINE',
   ],
   limits: {
     maxFiles: 1,
-    maxFileSizeMb: 50,
-    maxTotalSizeMb: 50,
+    maxFileSizeMb: 100,
+    maxTotalSizeMb: 100,
     allowedMimeTypes: [
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/msword',
     ],
   },
-  offlineSupport: true,
+  offlineSupport: false,
+  processingEngine: 'hybrid',
+  supportsClientSide: true,
+  supportsServerSide: true,
+  supportsChunking: false,
+  preferredStrategy: 'FAST_MEMORY',
 };
 
 // Word wrapping helper for pdf-lib standard fonts

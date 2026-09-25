@@ -90,12 +90,33 @@ def test_word_to_pdf():
     print(f"  [OK] PDF created successfully ({page_count} pages, {os.path.getsize(out_pdf_path)} bytes)")
     print("  [OK] PASS: Word to PDF conversion verified!")
 
+def test_pptx_to_pdf():
+    print("\n--- TEST: PowerPoint to PDF (Slide Layout & Pagination) ---")
+    pptx_path = os.path.join(TEMP_DIR, "sample_5page.pptx")
+    out_pdf_path = os.path.join(TEMP_DIR, "converted_from_pptx.pdf")
+
+    script_path = os.path.join(BASE_DIR, "backend", "workers", "pptx_to_pdf.py")
+    cmd = [sys.executable, script_path, "--input", pptx_path, "--output", out_pdf_path]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    assert result.returncode == 0, f"Worker failed: {result.stderr}"
+    assert os.path.exists(out_pdf_path), "Output PDF was not created"
+
+    pdf = fitz.open(out_pdf_path)
+    page_count = len(pdf)
+    pdf.close()
+    assert page_count == 5, f"Expected 5 presentation pages, got {page_count}"
+    print(f"  [OK] Presentation PDF created successfully ({page_count} pages, {os.path.getsize(out_pdf_path)} bytes)")
+    print("  [OK] PASS: PowerPoint to PDF high-fidelity conversion verified!")
+
 if __name__ == "__main__":
     try:
         test_pdf_to_pptx()
         test_pdf_to_word()
         test_word_to_pdf()
-        print("\nALL CORE CONVERTER TESTS PASSED SUCCESSFULLY!")
+        test_pptx_to_pdf()
+        print("\nALL CORE CONVERTER TESTS (PDF/WORD/PPTX) PASSED SUCCESSFULLY!")
 
     finally:
         pass
+

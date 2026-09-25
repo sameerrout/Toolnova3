@@ -5,6 +5,7 @@ import {
   QrCodeOptions,
   QrCodeGeneratorOptionsComponent,
 } from './QrCodeGeneratorOptions';
+import { buildQrPayload } from './qrPayload';
 
 export const qrCodeGeneratorManifest: ToolManifest = {
   id: 'qr-code-generator',
@@ -82,40 +83,7 @@ export const qrCodeGeneratorTool: IToolDefinition<QrCodeOptions> = {
       throw new Error('QR code generation aborted by user.');
     }
 
-    // Compute payload string
-    let payload = 'https://toolnova.com';
-    switch (options.dataType) {
-      case 'url':
-        payload = options.url || 'https://toolnova.com';
-        break;
-      case 'text':
-        payload = options.text || 'Toolnova High-Performance Tools';
-        break;
-      case 'email':
-        payload = `mailto:${options.email.address}?subject=${encodeURIComponent(
-          options.email.subject
-        )}&body=${encodeURIComponent(options.email.body)}`;
-        break;
-      case 'phone':
-        payload = `tel:${options.phone}`;
-        break;
-      case 'wifi':
-        payload = `WIFI:S:${options.wifi.ssid};T:${options.wifi.encryption};P:${options.wifi.password};;`;
-        break;
-      case 'vcard':
-        payload = [
-          'BEGIN:VCARD',
-          'VERSION:3.0',
-          `N:${options.vcard.lastName};${options.vcard.firstName}`,
-          `FN:${options.vcard.firstName} ${options.vcard.lastName}`,
-          `ORG:${options.vcard.organization}`,
-          `TEL:${options.vcard.phone}`,
-          `EMAIL:${options.vcard.email}`,
-          `URL:${options.vcard.website}`,
-          'END:VCARD',
-        ].join('\n');
-        break;
-    }
+    const payload = buildQrPayload(options);
 
     onProgress({ progress: 50, statusText: 'Rendering QR matrix...' });
 

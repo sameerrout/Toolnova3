@@ -44,6 +44,18 @@ export interface ToolManifest {
   capabilities: string[];
   limits: ToolLimits;
   offlineSupport: boolean;
+  processingEngine?: 'client-js' | 'python' | 'native-office' | 'hybrid';
+  supportsClientSide?: boolean;
+  supportsServerSide?: boolean;
+  supportsStreaming?: boolean;
+  supportsChunking?: boolean;
+  supportsCancellation?: boolean;
+  estimatedMemoryMb?: number;
+  maxPages?: number;
+  preferredStrategy?: 'CLIENT_SIDE' | 'FAST_MEMORY' | 'CHUNKED' | 'DISK_BACKED' | 'STREAMING';
+  workerId?: string;
+  seoSlug?: string;
+  categorySlug?: string;
   packageInfo?: {
     entrypoint: string;
     integrityHash?: string;

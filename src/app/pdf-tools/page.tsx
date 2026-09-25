@@ -71,7 +71,7 @@ function PdfToolsContent() {
             </h1>
             <p className="text-sm text-slate-600 leading-relaxed">
               Fast, privacy-focused online tools for your daily document tasks.
-              Convert, merge, split, rotate, watermark, stamp page numbers, and organize your PDFs with zero server uploads.
+              Convert, merge, split, rotate, watermark, stamp page numbers, and organize your PDFs with browser processing and secure server conversion.
             </p>
           </div>
 
@@ -79,8 +79,8 @@ function PdfToolsContent() {
           <div className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 self-start md:self-auto">
             <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
             <div>
-              <p className="font-semibold">100% Client-Side Privacy</p>
-              <p className="text-[11px] text-emerald-700">Zero file transmission to servers</p>
+              <p className="font-semibold">Verified Privacy &amp; Security</p>
+              <p className="text-[11px] text-emerald-700">Browser execution &amp; ephemeral sandboxes</p>
             </div>
           </div>
         </div>

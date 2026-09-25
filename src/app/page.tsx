@@ -95,7 +95,7 @@ export default function HomePage() {
         <div className="hidden lg:block absolute top-16 right-12 z-10 floating-badge-3">
           <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold backdrop-blur-md shadow-sm">
             <ShieldCheck className="h-3.5 w-3.5 text-blue-200" />
-            <span>Zero-Retention Security</span>
+            <span>Ephemeral Sandboxed Security</span>
           </div>
         </div>
 
@@ -114,7 +114,7 @@ export default function HomePage() {
           {/* Tag pill */}
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-300/40 bg-white/15 px-4 py-1 text-xs font-semibold text-white backdrop-blur-xs mb-6 shadow-xs">
             <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-            <span>Private &bull; Fast &bull; Free In-Browser Tools</span>
+            <span>Fast &bull; Private &bull; Comprehensive Document Suite</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 tracking-tight drop-shadow-xs">
@@ -122,7 +122,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mb-10 text-base sm:text-lg text-blue-100 max-w-2xl mx-auto leading-relaxed">
-            Convert, edit, and optimize PDFs and documents easily. All files stay on your device with 100% client-side execution.
+            Choose from browser-based tools and server-powered conversions. ToolNova selects the appropriate processing method for each tool.
           </p>
 
           <form onSubmit={handleSearch} className="flex justify-center max-w-2xl mx-auto">
@@ -153,7 +153,7 @@ export default function HomePage() {
               Explore Our Tools
             </h2>
             <p className="text-sm text-gray-500 mt-2">
-              Select any of our available client-side tools to get started instantly
+              Select any of our available high-performance tools to get started instantly
             </p>
           </div>
 

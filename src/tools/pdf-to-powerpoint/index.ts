@@ -10,7 +10,7 @@ export const pdfToPowerpointManifest: ToolManifest = {
   name: 'PDF to PowerPoint',
   category: 'pdf',
   description:
-    'Convert PDF presentation slides into editable Microsoft PowerPoint (.pptx) decks.',
+    'Convert PDF presentation slides into visual-fidelity Microsoft PowerPoint (.pptx) decks with 1:1 page-to-slide mapping.',
   version: '1.0.0',
   executionMode: 'HYBRID',
   runtime: 'browser',
@@ -19,7 +19,7 @@ export const pdfToPowerpointManifest: ToolManifest = {
   permissions: {
     readInputFiles: true,
     writeOutputFiles: true,
-    networkAccess: false,
+    networkAccess: true,
     accessOtherFiles: false,
   },
   capabilities: [
@@ -27,15 +27,21 @@ export const pdfToPowerpointManifest: ToolManifest = {
     'SLIDE_CONVERSION',
     'HIRES_RENDERING',
     'SPEAKER_NOTES_EXTRACTION',
-    'CLIENT_SIDE_ONLY',
+    '1_PAGE_1_SLIDE_GUARANTEE',
+    'SERVER_WORKER_PIPELINE',
   ],
   limits: {
     maxFiles: 1,
-    maxFileSizeMb: 50,
-    maxTotalSizeMb: 50,
+    maxFileSizeMb: 100,
+    maxTotalSizeMb: 100,
     allowedMimeTypes: ['application/pdf'],
   },
-  offlineSupport: true,
+  offlineSupport: false,
+  processingEngine: 'hybrid',
+  supportsClientSide: true,
+  supportsServerSide: true,
+  supportsChunking: true,
+  preferredStrategy: 'CHUNKED',
 };
 
 export const pdfToPowerpointTool: IToolDefinition<PdfToPowerpointOptions> = {

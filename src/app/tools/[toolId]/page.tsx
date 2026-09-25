@@ -14,6 +14,7 @@ import { ToolRunner } from '@/components/tools/ToolRunner';
 import { TOOLS_CATALOG } from '@/data/toolsCatalog';
 import { getToolSeoData } from '@/data/toolsSeoContent';
 import { Container } from '@/components/common/Container';
+import { getToolCanonicalUrl } from '@/app/sitemap';
 
 interface ToolPageProps {
   params: Promise<{
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 
   const seo = getToolSeoData(tool.id, tool.name, tool.description);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://toolnova.com';
-  const pageUrl = `${baseUrl}/tools/${tool.id}`;
+  const pageUrl = getToolCanonicalUrl(tool.id, baseUrl);
 
   return {
     title: seo.title,
@@ -84,7 +85,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
   const seo = getToolSeoData(tool.id, tool.name, tool.description);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://toolnova.com';
-  const pageUrl = `${baseUrl}/tools/${tool.id}`;
+  const pageUrl = getToolCanonicalUrl(tool.id, baseUrl);
 
   // Structured Data (JSON-LD) (§37)
   const webAppSchema = {

@@ -34,6 +34,8 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     status: job.status,
     progress: job.progress,
     stage: job.stage,
+    currentPage: job.currentPage ?? null,
+    totalPages: job.totalPages ?? null,
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,
     output: job.outputFileName

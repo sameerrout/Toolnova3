@@ -176,6 +176,62 @@ export const TOOLS_SEO_DATA: Record<string, ToolSeoData> = {
     relatedTools: ['pdf-to-word', 'pdf-to-powerpoint', 'merge-pdf', 'protect-pdf'],
   },
 
+  'powerpoint-to-pdf': {
+    title: 'PowerPoint to PDF Converter Online - Slide Layout & Formatting | Toolnova',
+    metaDescription:
+      'Convert PowerPoint (.pptx and .ppt) presentations into crisp, printable PDF documents online. Preserves slide layout, aspect ratio, fonts, and graphics.',
+    howTo: [
+      {
+        step: '1',
+        title: 'Upload PowerPoint Presentation',
+        desc: 'Select or drag-and-drop your .pptx or .ppt slide deck.',
+      },
+      {
+        step: '2',
+        title: 'Render Slides & Layout',
+        desc: 'Our high-fidelity engine compiles presentation vectors, background themes, and shapes.',
+      },
+      {
+        step: '3',
+        title: 'Download Presentation PDF',
+        desc: 'Save your print-ready, vectorized PDF presentation document immediately.',
+      },
+    ],
+    features: [
+      {
+        title: 'Slide-to-Page Layout Preservation',
+        desc: 'Maintains exact slide dimensions, theme colors, typography, and bulleted lists.',
+      },
+      {
+        title: 'High-Fidelity Document Engine',
+        desc: 'Utilizes local presentation rendering engines with structured layout fallback.',
+      },
+      {
+        title: 'Strict Output Validation',
+        desc: 'Validates PDF headers, readable pages, and non-zero byte stream before download.',
+      },
+      {
+        title: 'Ephemeral Sandbox Security',
+        desc: 'Temporary conversion files are cleaned automatically after job completion.',
+      },
+    ],
+    faqs: [
+      {
+        q: 'Will my slide layout and formatting be preserved?',
+        a: 'Yes, Toolnova preserves title formatting, themes, bullet items, and aspect ratio across portrait and landscape decks.',
+      },
+      {
+        q: 'Is PowerPoint to PDF conversion free?',
+        a: 'Yes, conversion is free on Toolnova with no sign-up or forced software installation.',
+      },
+      {
+        q: 'How are uploaded presentations handled?',
+        a: 'Presentations are processed in isolated temporary sandboxes and automatically deleted according to our retention policy.',
+      },
+    ],
+    relatedTools: ['pdf-to-powerpoint', 'pdf-to-word', 'word-to-pdf', 'compress-pdf'],
+  },
+
   'qr-code-generator': {
     title: 'Free QR Code Generator - URLs, WiFi, Text, vCard & Custom Colors | Toolnova',
     metaDescription:
@@ -211,8 +267,8 @@ export const TOOLS_SEO_DATA: Record<string, ToolSeoData> = {
         desc: 'Personalize foreground and background colors with real-time live preview.',
       },
       {
-        title: '100% In-Browser Privacy',
-        desc: 'QR generation runs entirely client-side using JavaScript with zero server network requests.',
+        title: 'In-Browser Privacy',
+        desc: 'QR generation executes directly in your browser using JavaScript with no external network requests.',
       },
     ],
     faqs: [
@@ -226,7 +282,7 @@ export const TOOLS_SEO_DATA: Record<string, ToolSeoData> = {
       },
       {
         q: 'Does Toolnova store the data I enter?',
-        a: 'Never. The QR code generator runs 100% client-side in your browser; your data never leaves your device.',
+        a: 'No. The QR code generator runs directly in your browser without transmitting your payload to external servers.',
       },
     ],
     relatedTools: ['image-to-pdf', 'edit-pdf', 'protect-pdf'],
@@ -243,7 +299,7 @@ export function getToolSeoData(toolId: string, toolName: string, description: st
 
   return {
     title: `${toolName} Online - Free & Secure | Toolnova`,
-    metaDescription: `${description} Fast, privacy-focused online tool by Toolnova. Zero persistent storage.`,
+    metaDescription: `${description} Fast, privacy-focused online tool by Toolnova with secure ephemeral processing.`,
     howTo: [
       {
         step: '1',
@@ -263,7 +319,7 @@ export function getToolSeoData(toolId: string, toolName: string, description: st
     ],
     features: [
       {
-        title: 'Instant In-Browser Execution',
+        title: 'Instant Execution',
         desc: 'Processes tasks efficiently with optimal resource management.',
       },
       {
@@ -282,7 +338,7 @@ export function getToolSeoData(toolId: string, toolName: string, description: st
       },
       {
         q: 'Are my files kept private?',
-        a: 'Yes, our platform operates on strict zero-retention principles with client-side or ephemeral processing.',
+        a: 'Yes, our platform operates on strict ephemeral processing principles. Client-side tools run in browser memory, while server-assisted tools use temporary directories that are automatically purged after processing.',
       },
     ],
     relatedTools: ['merge-pdf', 'split-pdf', 'compress-pdf', 'pdf-to-word'],

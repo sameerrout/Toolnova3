@@ -11,6 +11,7 @@ import {
 import { CatalogTool } from '@/data/toolsCatalog';
 import { Badge } from '@/components/common/Badge';
 import { cn } from '@/lib/utils/cn';
+import { CLEAN_TOOL_URLS } from '@/app/sitemap';
 
 interface ToolCardProps {
   tool: CatalogTool;
@@ -19,7 +20,7 @@ interface ToolCardProps {
 
 export function ToolCard({ tool, className }: ToolCardProps) {
   const isAvailable = tool.isAvailable;
-  const href = isAvailable ? `/tools/${tool.id}` : '#';
+  const href = isAvailable ? (CLEAN_TOOL_URLS[tool.id] || `/tools/${tool.id}`) : '#';
 
   const cardContent = (
     <div

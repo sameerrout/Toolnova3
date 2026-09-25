@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import { Copy, Download, Check, QrCode, Globe, Mail, Phone, Wifi, User, Type } from 'lucide-react';
 
+import { buildQrPayload } from './qrPayload';
+
 export type QrDataType = 'text' | 'url' | 'email' | 'phone' | 'wifi' | 'vcard';
 
 export interface QrCodeOptions {
@@ -45,38 +47,7 @@ export function QrCodeGeneratorOptionsComponent({
   const [svgString, setSvgString] = useState<string>('');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Generate payload string based on data type
-  const computePayload = (): string => {
-    switch (options.dataType) {
-      case 'url':
-        return options.url || 'https://toolnova.com';
-      case 'email':
-        return `mailto:${options.email.address}?subject=${encodeURIComponent(
-          options.email.subject
-        )}&body=${encodeURIComponent(options.email.body)}`;
-      case 'phone':
-        return `tel:${options.phone}`;
-      case 'wifi':
-        return `WIFI:S:${options.wifi.ssid};T:${options.wifi.encryption};P:${options.wifi.password};;`;
-      case 'vcard':
-        return [
-          'BEGIN:VCARD',
-          'VERSION:3.0',
-          `N:${options.vcard.lastName};${options.vcard.firstName}`,
-          `FN:${options.vcard.firstName} ${options.vcard.lastName}`,
-          `ORG:${options.vcard.organization}`,
-          `TEL:${options.vcard.phone}`,
-          `EMAIL:${options.vcard.email}`,
-          `URL:${options.vcard.website}`,
-          'END:VCARD',
-        ].join('\n');
-      case 'text':
-      default:
-        return options.text || 'Toolnova High-Performance Tools';
-    }
-  };
-
-  const payload = computePayload();
+  const payload = buildQrPayload(options);
 
   // Render live preview
   useEffect(() => {

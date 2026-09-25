@@ -21,7 +21,7 @@ export const powerpointToPdfManifest: ToolManifest = {
   permissions: {
     readInputFiles: true,
     writeOutputFiles: true,
-    networkAccess: false,
+    networkAccess: true,
     accessOtherFiles: false,
   },
   capabilities: [
@@ -29,18 +29,25 @@ export const powerpointToPdfManifest: ToolManifest = {
     'SLIDE_XML_PARSING',
     'PRESENTATION_PDF_LAYOUT',
     'THEME_STYLING',
-    'CLIENT_SIDE_ONLY',
+    'NATIVE_POWERPOINT_COM',
+    'LIBREOFFICE_HEADLESS',
+    'SERVER_WORKER_PIPELINE',
   ],
   limits: {
     maxFiles: 1,
-    maxFileSizeMb: 50,
-    maxTotalSizeMb: 50,
+    maxFileSizeMb: 100,
+    maxTotalSizeMb: 100,
     allowedMimeTypes: [
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'application/vnd.ms-powerpoint',
     ],
   },
-  offlineSupport: true,
+  offlineSupport: false,
+  processingEngine: 'hybrid',
+  supportsClientSide: true,
+  supportsServerSide: true,
+  supportsChunking: false,
+  preferredStrategy: 'FAST_MEMORY',
 };
 
 interface ParsedSlide {
