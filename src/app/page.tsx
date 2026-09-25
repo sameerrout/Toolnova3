@@ -24,6 +24,7 @@ const TOOL_ICONS: Record<string, string> = {
   'word-to-pdf': '📄',
   'pdf-to-powerpoint': '📊',
   'powerpoint-to-pdf': '📽️',
+  'qr-code-generator': '🔳',
 };
 
 export default function HomePage() {
@@ -80,21 +81,21 @@ export default function HomePage() {
         <div className="hidden lg:block absolute top-12 left-10 z-10 floating-badge-1">
           <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold backdrop-blur-md shadow-sm">
             <Lock className="h-3.5 w-3.5 text-emerald-300" />
-            <span>Zero Server Uploads</span>
+            <span>Privacy-First Architecture</span>
           </div>
         </div>
 
         <div className="hidden lg:block absolute bottom-16 left-16 z-10 floating-badge-2">
           <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold backdrop-blur-md shadow-sm">
             <Zap className="h-3.5 w-3.5 text-amber-300" />
-            <span>Instant Local Processing</span>
+            <span>Adaptive High-Performance Engine</span>
           </div>
         </div>
 
         <div className="hidden lg:block absolute top-16 right-12 z-10 floating-badge-3">
           <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold backdrop-blur-md shadow-sm">
             <ShieldCheck className="h-3.5 w-3.5 text-blue-200" />
-            <span>100% Client-Side Privacy</span>
+            <span>Zero-Retention Security</span>
           </div>
         </div>
 
@@ -167,7 +168,7 @@ export default function HomePage() {
                         {TOOL_ICONS[tool.id] || '📄'}
                       </div>
                       <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                        100% Local
+                        {tool.badge || 'Verified'}
                       </span>
                     </div>
 

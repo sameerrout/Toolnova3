@@ -18,9 +18,10 @@ import { pdfToWordTool } from '@/tools/pdf-to-word';
 import { wordToPdfTool } from '@/tools/word-to-pdf';
 import { pdfToPowerpointTool } from '@/tools/pdf-to-powerpoint';
 import { powerpointToPdfTool } from '@/tools/powerpoint-to-pdf';
+import { qrCodeGeneratorTool } from '@/tools/qr-code-generator';
 import { toolRegistry } from '@/core/registry/toolRegistry';
 
-// Register all 16 active client-side and hybrid tools
+// Register all 17 active client-side and hybrid tools
 toolRegistry.register(imageToPdfTool);
 toolRegistry.register(mergePdfTool);
 toolRegistry.register(splitPdfTool);
@@ -37,5 +38,6 @@ toolRegistry.register(pdfToWordTool);
 toolRegistry.register(wordToPdfTool);
 toolRegistry.register(pdfToPowerpointTool);
 toolRegistry.register(powerpointToPdfTool);
+toolRegistry.register(qrCodeGeneratorTool);
 
 export { toolRegistry };

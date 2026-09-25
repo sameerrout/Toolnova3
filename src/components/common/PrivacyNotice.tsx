@@ -24,11 +24,11 @@ export function PrivacyNotice({
       >
         <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
         <div className="text-xs">
-          <span className="font-semibold">Privacy First:</span>{' '}
-          Your files are processed locally in your browser and never leave your device.
+          <span className="font-semibold">Client-Side Architecture:</span>{' '}
+          This tool runs directly in your browser without persistent external storage.
           {detailed && (
             <p className="mt-1 text-[11px] text-emerald-700/90 leading-tight">
-              All transformations happen inside client Web Workers with zero server transmission.
+              Transformations execute using browser-native APIs and WebAssembly.
             </p>
           )}
         </div>

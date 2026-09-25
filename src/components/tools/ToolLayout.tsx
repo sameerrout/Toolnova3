@@ -144,7 +144,7 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
     <div className="py-8 md:py-14">
       <Container size="lg">
         {/* Navigation Breadcrumb */}
-        <div className="mb-6 flex items-center gap-2 text-xs text-slate-500">
+        <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-xs text-slate-500">
           <Link
             href="/"
             className="hover:text-blue-600 transition-colors"
@@ -153,14 +153,14 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
           </Link>
           <span>/</span>
           <Link
-            href="/pdf-tools"
-            className="hover:text-blue-600 transition-colors"
+            href={manifest.category === 'pdf' ? '/pdf-tools' : '/'}
+            className="hover:text-blue-600 transition-colors capitalize"
           >
-            PDF Tools
+            {manifest.category === 'pdf' ? 'PDF Tools' : `${manifest.category} Tools`}
           </Link>
           <span>/</span>
           <span className="font-semibold text-slate-900">{manifest.name}</span>
-        </div>
+        </nav>
 
         {/* Tool Header */}
         <div className="space-y-4 border-b border-slate-200 pb-6">
@@ -178,7 +178,7 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
               {manifest.executionMode === 'LOCAL' && (
                 <Badge variant="success" size="md">
                   <Lock className="h-3.5 w-3.5" />
-                  100% Client-Side
+                  Client-Side Engine
                 </Badge>
               )}
             </div>

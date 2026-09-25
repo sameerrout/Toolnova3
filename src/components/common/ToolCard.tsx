@@ -54,9 +54,9 @@ export function ToolCard({ tool, className }: ToolCardProps) {
             )}
 
             {tool.executionMode === 'LOCAL' && (
-              <Badge variant="success" size="sm" title="Processes 100% in browser">
+              <Badge variant="success" size="sm" title="Client-side processing">
                 <Lock className="h-3 w-3" />
-                Local
+                In-Browser
               </Badge>
             )}
 

@@ -24,7 +24,7 @@ export default function AboutPage() {
               ToolNova is built to provide simple and efficient digital tools for everyday needs like document processing, formatting, converters, and utilities.
             </p>
             <p className="mb-4 text-gray-600 leading-relaxed">
-              Our goal is to make tasks faster, easier, and accessible to everyone with total privacy and without unnecessary server uploads.
+              Our goal is to make tasks faster, easier, and accessible to everyone with rigorous privacy controls, client-side tools where practical, and zero persistent file retention.
             </p>
 
             <h3 className="text-xl font-semibold mt-6 mb-2 text-slate-900">Our Mission</h3>

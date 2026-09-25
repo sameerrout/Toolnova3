@@ -71,9 +71,7 @@ class FileDatabase {
   private save(): void {
     if (!this.inMemoryData) return;
     try {
-      const tempFile = `${DB_FILE}.${Date.now()}.tmp`;
-      fs.writeFileSync(tempFile, JSON.stringify(this.inMemoryData, null, 2), 'utf-8');
-      fs.renameSync(tempFile, DB_FILE);
+      fs.writeFileSync(DB_FILE, JSON.stringify(this.inMemoryData, null, 2), 'utf-8');
     } catch (err) {
       console.error('[Database] Failed to write database file:', err);
     }

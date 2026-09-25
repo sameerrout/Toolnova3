@@ -24,7 +24,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     outputFormats: ['PDF'],
     isAvailable: true,
     isPopular: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'merge-pdf',
@@ -36,7 +36,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     outputFormats: ['PDF'],
     isAvailable: true,
     isPopular: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'split-pdf',
@@ -48,7 +48,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     outputFormats: ['PDF'],
     isAvailable: true,
     isPopular: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'rotate-pdf',
@@ -59,7 +59,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     inputFormats: ['PDF'],
     outputFormats: ['PDF'],
     isAvailable: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'watermark-pdf',
@@ -70,7 +70,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     inputFormats: ['PDF'],
     outputFormats: ['PDF'],
     isAvailable: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'pdf-page-numbers',
@@ -81,7 +81,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     inputFormats: ['PDF'],
     outputFormats: ['PDF'],
     isAvailable: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'organize-pdf',
@@ -92,7 +92,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     inputFormats: ['PDF'],
     outputFormats: ['PDF'],
     isAvailable: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'unlock-pdf',
@@ -103,7 +103,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     inputFormats: ['PDF'],
     outputFormats: ['PDF'],
     isAvailable: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'compress-pdf',
@@ -115,7 +115,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     outputFormats: ['PDF'],
     isAvailable: true,
     isPopular: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'edit-pdf',
@@ -126,7 +126,7 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     inputFormats: ['PDF'],
     outputFormats: ['PDF'],
     isAvailable: true,
-    badge: '100% Client-Side',
+    badge: 'Client-Side',
   },
   {
     id: 'pdf-to-image',
@@ -195,5 +195,17 @@ export const TOOLS_CATALOG: CatalogTool[] = [
     outputFormats: ['PDF'],
     isAvailable: true,
     badge: 'Slide Engine',
+  },
+  {
+    id: 'qr-code-generator',
+    name: 'QR Code Generator',
+    category: 'utility',
+    description: 'Generate customized high-resolution QR codes for websites, plain text, Wi-Fi networks, vCards, phone numbers, and emails with custom colors and formats.',
+    executionMode: 'LOCAL',
+    inputFormats: ['TXT'],
+    outputFormats: ['PNG', 'SVG'],
+    isAvailable: true,
+    isPopular: true,
+    badge: 'Vector & Raster',
   },
 ];

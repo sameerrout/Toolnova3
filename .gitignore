@@ -35,3 +35,10 @@ next-env.d.ts
 /data/*.json
 .vercel
 
+# backend temp and ephemeral jobs storage
+/backend/temp/
+/backend/storage/jobs/
+__pycache__/
+*.pyc
+*.tmp
+

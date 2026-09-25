@@ -5,8 +5,9 @@ import { Document, Paragraph, TextRun, Packer } from 'docx';
 import mammoth from 'mammoth';
 import JSZip from 'jszip';
 import PptxGenJS from 'pptxgenjs';
+import QRCode from 'qrcode';
 
-console.log('🚀 Running Toolnova Complete 16-Tool Integration Test Suite...\n');
+console.log('🚀 Running Toolnova Complete 17-Tool Integration Test Suite...\n');
 
 // 1. TEST: PDF Generation (Image to PDF)
 console.log('Test 1: Creating PDF Document (Image to PDF)...');
@@ -216,4 +217,20 @@ const loadedPptPdf = await PDFDocument.load(pptToPdfBytes);
 assert.strictEqual(loadedPptPdf.getPageCount(), 2, 'PPT to PDF should have 2 pages');
 console.log(`  ✓ Successfully extracted PPTX slides and rendered presentation PDF (${pptToPdfBytes.length} bytes)`);
 
-console.log('\n🎉 ALL 16 TOOLNOVA TOOLS INTEGRATION TESTS PASSED WITH 100% SUCCESS!\n');
+// 17. TEST: QR Code Generator (PNG and SVG Generation)
+console.log('\nTest 17: Generating QR Codes in PNG and Vector SVG (QR Code Generator)...');
+const qrDataUrl = await QRCode.toDataURL('https://toolnova.com', {
+    width: 512,
+    margin: 2,
+    color: { dark: '#0f172a', light: '#ffffff' },
+});
+assert(qrDataUrl.startsWith('data:image/png;base64,'), 'QR data URL should be a valid PNG base64 string');
+
+const qrSvg = await QRCode.toString('WIFI:S:ToolnovaWiFi;T:WPA;P:Password123;;', {
+    type: 'svg',
+    margin: 2,
+});
+assert(qrSvg.includes('<svg') && qrSvg.includes('</svg>'), 'QR SVG output should be valid SVG XML');
+console.log(`  ✓ Successfully generated PNG (${qrDataUrl.length} chars) and vector SVG (${qrSvg.length} chars)`);
+
+console.log('\n🎉 ALL 17 TOOLNOVA TOOLS INTEGRATION TESTS PASSED WITH 100% SUCCESS!\n');

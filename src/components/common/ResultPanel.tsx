@@ -112,7 +112,7 @@ export function ResultPanel({ output, onReset, className }: ResultPanelProps) {
           </div>
           <span className="shrink-0 text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
             <ShieldCheck className="w-3 h-3" />
-            100% Local
+            Verified Output
           </span>
         </div>
 
