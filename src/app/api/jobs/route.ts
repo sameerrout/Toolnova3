@@ -52,12 +52,14 @@ export async function POST(req: NextRequest) {
     );
   } catch (err: any) {
     console.error('[API /api/jobs POST error]:', err);
+    const msg = err?.message || 'Failed to initialize processing job.';
+    const isClientError = msg.startsWith('INVALID_FILE') || msg.startsWith('VALIDATION_ERROR');
     return NextResponse.json(
       {
-        errorCode: 'PROCESSING_FAILED',
-        error: 'Failed to initialize processing job.',
+        errorCode: isClientError ? 'INVALID_FILE' : 'PROCESSING_FAILED',
+        error: msg,
       },
-      { status: 500 }
+      { status: isClientError ? 400 : 500 }
     );
   }
 }

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
+export type UserRole = 'USER' | 'ADMIN' | 'CO_DEVELOPER';
+
 export interface UserRecord {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface UserRecord {
   salt: string;
   profile_image: string | null;
   auth_provider: 'local' | 'google';
+  role?: UserRole;
   created_at: number;
   updated_at: number;
 }
@@ -33,6 +36,23 @@ const DATA_DIR = isServerless
   ? path.join(os.tmpdir(), 'toolnova_data')
   : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'toolnova_db.json');
+
+export function resolveUserRole(email: string, explicitRole?: UserRole): UserRole {
+  if (explicitRole) return explicitRole;
+  const normalized = email.toLowerCase().trim();
+  const adminList = (process.env.ADMIN_EMAILS || 'sameerrout2004@gmail.com,admin@toolnova.com')
+    .split(',')
+    .map((e) => e.toLowerCase().trim())
+    .filter(Boolean);
+  const coDevList = (process.env.CO_DEV_EMAILS || 'sony@toolnova.com,sampangisony@gmail.com,developer@toolnova.com')
+    .split(',')
+    .map((e) => e.toLowerCase().trim())
+    .filter(Boolean);
+
+  if (adminList.includes(normalized)) return 'ADMIN';
+  if (coDevList.includes(normalized)) return 'CO_DEVELOPER';
+  return 'USER';
+}
 
 class FileDatabase {
   private inMemoryData: DatabaseSchema | null = null;
@@ -59,6 +79,19 @@ class FileDatabase {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       this.inMemoryData = JSON.parse(raw);
       this.isLoaded = true;
+
+      // Ensure roles are assigned for backward compatibility
+      let modified = false;
+      this.inMemoryData!.users.forEach((u) => {
+        if (!u.role) {
+          u.role = resolveUserRole(u.email);
+          modified = true;
+        }
+      });
+      if (modified) {
+        this.save();
+      }
+
       return this.inMemoryData!;
     } catch {
       const fallback: DatabaseSchema = { users: [], sessions: [] };
@@ -95,10 +128,13 @@ class FileDatabase {
   ): Promise<UserRecord> {
     const db = this.ensureDb();
     const now = Date.now();
+    const normalizedEmail = userData.email.toLowerCase().trim();
+    const role = userData.role || resolveUserRole(normalizedEmail);
     const newUser: UserRecord = {
       ...userData,
+      email: normalizedEmail,
+      role,
       id: crypto.randomUUID(),
-      email: userData.email.toLowerCase().trim(),
       created_at: now,
       updated_at: now,
     };
@@ -106,6 +142,16 @@ class FileDatabase {
     db.users.push(newUser);
     this.save();
     return newUser;
+  }
+
+  public async updateUserRole(userId: string, role: UserRole): Promise<UserRecord | null> {
+    const db = this.ensureDb();
+    const user = db.users.find((u) => u.id === userId);
+    if (!user) return null;
+    user.role = role;
+    user.updated_at = Date.now();
+    this.save();
+    return user;
   }
 
   public async createSession(

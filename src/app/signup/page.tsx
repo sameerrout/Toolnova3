@@ -65,7 +65,7 @@ export default function SignupPage() {
         <div className="flex justify-center mb-4">
           <Image
             src="/logo1.png"
-            alt="ToolNova Logo"
+            alt="Toolino Logo"
             width={64}
             height={64}
             className="h-16 w-auto object-contain hover:scale-105 transition"
@@ -206,7 +206,7 @@ export default function SignupPage() {
 
           {/* Terms */}
           <p className="text-[11px] text-gray-500 mt-4 max-w-xs mx-auto leading-normal">
-            By creating an account, you agree to ToolNova{' '}
+            By creating an account, you agree to Toolino{' '}
             <span className="text-blue-600">Terms of Service</span> and{' '}
             <span className="text-blue-600">Privacy Policy</span>
           </p>

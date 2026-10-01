@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/database';
+import { isManagerEmail } from '@/lib/auth/serverAuth';
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionCookie = request.cookies.get('toolnova_session');
+    const sessionCookie = request.cookies.get('toolino_session') || request.cookies.get('toolnova_session');
     if (!sessionCookie || !sessionCookie.value) {
       return NextResponse.json({ success: false, user: null });
     }
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest) {
         email: sessionData.user.email,
         profile_image: sessionData.user.profile_image,
         auth_provider: sessionData.user.auth_provider,
+        role: sessionData.user.role || 'USER',
+        managerAccess: isManagerEmail(sessionData.user.email),
       },
     });
   } catch (err: unknown) {

@@ -87,7 +87,7 @@ export const imageToPdfTool: IToolDefinition<ImageToPdfOptions> = {
 
     // Format output filename
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-converted-${dateStamp}.pdf`;
+    const fileName = `toolino-converted-${dateStamp}.pdf`;
 
     return {
       blob: pdfBlob,

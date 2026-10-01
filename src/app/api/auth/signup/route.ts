@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/database';
 import { hashPassword, generateDefaultAvatar } from '@/lib/auth/crypto';
+import { isManagerEmail } from '@/lib/auth/serverAuth';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -73,7 +74,19 @@ export async function POST(request: NextRequest) {
         email: user.email,
         profile_image: user.profile_image,
         auth_provider: user.auth_provider,
+        role: user.role || 'USER',
+        managerAccess: isManagerEmail(user.email),
       },
+    });
+
+    response.cookies.set({
+      name: 'toolino_session',
+      value: session.token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
     });
 
     response.cookies.set({

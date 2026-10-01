@@ -6,7 +6,7 @@ import { Container } from '@/components/common/Container';
 import { TOOLS_CATALOG } from '@/data/toolsCatalog';
 
 export const metadata: Metadata = {
-  title: 'Image Conversion & Processing Tools | Toolnova',
+  title: 'Image Conversion & Processing Tools | Toolino',
   description:
     'Convert images to PDF, extract PDF pages to high-resolution PNG/JPG ZIP packages, and transform image files directly in your browser.',
   alternates: {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function ImageToolsPage() {
   const imageTools = TOOLS_CATALOG.filter(
-    (t) => t.isAvailable && (t.id === 'image-to-pdf' || t.id === 'pdf-to-image')
+    (t) => t.isAvailable && (t.id === 'image-compressor' || t.id === 'image-resizer' || t.id === 'background-remover' || t.id === 'image-converter' || t.id === 'passport-photo-maker' || t.id === 'image-to-text' || t.id === 'image-to-pdf' || t.id === 'pdf-to-image')
   );
 
   return (
@@ -54,13 +54,10 @@ export default function ImageToolsPage() {
               className="group bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:border-blue-300 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <div className="mb-4">
+                  <div className="inline-flex w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 items-center justify-center font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <ImageIcon className="w-6 h-6" />
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                    {tool.badge || 'Verified'}
-                  </span>
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                   {tool.name}

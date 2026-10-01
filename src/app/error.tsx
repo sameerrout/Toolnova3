@@ -14,7 +14,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     // Technical detail logged only to internal console, not exposed in UI (§51)
-    console.error('Toolnova runtime boundary caught error:', error);
+    console.error('Toolino runtime boundary caught error:', error);
   }, [error]);
 
   return (

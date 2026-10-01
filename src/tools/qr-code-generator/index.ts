@@ -41,7 +41,7 @@ export const qrCodeGeneratorManifest: ToolManifest = {
 
 export const defaultQrOptions: QrCodeOptions = {
   dataType: 'url',
-  text: 'Toolnova - High-Performance Online Tools',
+  text: 'Toolino - High-Performance Online Tools',
   url: 'https://toolnova.com',
   email: { address: '', subject: '', body: '' },
   phone: '',

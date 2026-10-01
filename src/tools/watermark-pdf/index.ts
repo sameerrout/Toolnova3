@@ -133,7 +133,7 @@ export const watermarkPdfTool: IToolDefinition<WatermarkPdfOptions> = {
     const pdfBytes = await pdfDoc.save();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-watermarked-${dateStamp}.pdf`;
+    const fileName = `toolino-watermarked-${dateStamp}.pdf`;
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: 'application/pdf',
     });

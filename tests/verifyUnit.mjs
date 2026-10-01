@@ -104,10 +104,7 @@ console.log('  ✓ Adaptive strategy dynamically scales between FAST_MEMORY, CHU
 // 5. SEO URL Canonical Mapping Test (§36, §43)
 console.log('\nTest 5: Canonical Clean URL & Sitemap Route Consistency...');
 const CLEAN_TOOL_URLS = {
-  'pdf-to-word': '/pdf-to-word',
-  'word-to-pdf': '/word-to-pdf',
   'pdf-to-powerpoint': '/pdf-to-powerpoint',
-  'powerpoint-to-pdf': '/powerpoint-to-pdf',
   'qr-code-generator': '/qr-code-generator',
 };
 
@@ -116,10 +113,7 @@ function getToolCanonicalUrl(toolId, baseUrl = 'https://toolnova.com') {
   return `${baseUrl}${cleanPath || `/tools/${toolId}`}`;
 }
 
-assert.strictEqual(getToolCanonicalUrl('pdf-to-word'), 'https://toolnova.com/pdf-to-word');
-assert.strictEqual(getToolCanonicalUrl('word-to-pdf'), 'https://toolnova.com/word-to-pdf');
 assert.strictEqual(getToolCanonicalUrl('pdf-to-powerpoint'), 'https://toolnova.com/pdf-to-powerpoint');
-assert.strictEqual(getToolCanonicalUrl('powerpoint-to-pdf'), 'https://toolnova.com/powerpoint-to-pdf');
 assert.strictEqual(getToolCanonicalUrl('qr-code-generator'), 'https://toolnova.com/qr-code-generator');
 assert.strictEqual(getToolCanonicalUrl('merge-pdf'), 'https://toolnova.com/tools/merge-pdf');
 console.log('  ✓ Clean canonical URLs verified for all primary conversion workflows');

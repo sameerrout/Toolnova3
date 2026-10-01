@@ -1,5 +1,5 @@
 /**
- * Toolnova Core Types & Contracts
+ * Toolino Core Types & Contracts
  * Adheres strictly to the architectural specifications defined in the Master Prompt.
  */
 

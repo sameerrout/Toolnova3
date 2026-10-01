@@ -3,11 +3,22 @@ import { TOOLS_CATALOG } from '@/data/toolsCatalog';
 
 // Canonical clean URL mapping for major tools (§36, §43)
 export const CLEAN_TOOL_URLS: Record<string, string> = {
-  'pdf-to-word': '/pdf-to-word',
-  'word-to-pdf': '/word-to-pdf',
   'pdf-to-powerpoint': '/pdf-to-powerpoint',
-  'powerpoint-to-pdf': '/powerpoint-to-pdf',
   'qr-code-generator': '/qr-code-generator',
+  'image-compressor': '/image-compressor',
+  'image-resizer': '/image-resizer',
+  'background-remover': '/background-remover',
+  'image-converter': '/image-converter',
+  'passport-photo-maker': '/passport-photo-maker',
+  'image-to-text': '/image-to-text',
+  'word-counter': '/word-counter',
+  'json-formatter': '/json-formatter',
+  'age-calculator': '/age-calculator',
+  'percentage-calculator': '/percentage-calculator',
+  'emi-calculator': '/emi-calculator',
+  'discount-calculator': '/discount-calculator',
+  'pdf-summarizer': '/pdf-summarizer',
+  'gst-calculator': '/gst-calculator',
 };
 
 export function getToolCanonicalUrl(toolId: string, baseUrl: string = 'https://toolnova.com'): string {

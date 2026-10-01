@@ -1,7 +1,17 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on image-to-pdf page as requested
+  if (pathname?.includes('image-to-pdf')) {
+    return null;
+  }
+
   return (
     <footer className="bg-blue-900 text-white py-12 border-t border-blue-800">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
@@ -32,6 +42,9 @@ export function Footer() {
           <Link href="/tools/pdf-to-image" className="block text-blue-200 hover:text-white transition">
             PDF to Image
           </Link>
+          <Link href="/pdf-summarizer" className="block text-blue-200 hover:text-white transition font-medium">
+            PDF Summarizer
+          </Link>
         </div>
 
         {/* Implemented Tools Column 2 */}
@@ -40,26 +53,53 @@ export function Footer() {
           <Link href="/tools/protect-pdf" className="block text-blue-200 hover:text-white transition">
             Protect PDF
           </Link>
-          <Link href="/tools/unlock-pdf" className="block text-blue-200 hover:text-white transition">
-            Unlock PDF
-          </Link>
           <Link href="/tools/watermark-pdf" className="block text-blue-200 hover:text-white transition">
             Watermark PDF
           </Link>
           <Link href="/tools/pdf-page-numbers" className="block text-blue-200 hover:text-white transition">
             PDF Page Numbers
           </Link>
-          <Link href="/tools/pdf-to-word" className="block text-blue-200 hover:text-white transition">
-            PDF to Word
-          </Link>
-          <Link href="/tools/word-to-pdf" className="block text-blue-200 hover:text-white transition">
-            Word to PDF
-          </Link>
           <Link href="/tools/pdf-to-powerpoint" className="block text-blue-200 hover:text-white transition">
             PDF to PowerPoint
           </Link>
-          <Link href="/tools/powerpoint-to-pdf" className="block text-blue-200 hover:text-white transition">
-            PowerPoint to PDF
+          <Link href="/image-compressor" className="block text-blue-200 hover:text-white transition font-medium">
+            Image Compressor
+          </Link>
+          <Link href="/image-resizer" className="block text-blue-200 hover:text-white transition font-medium">
+            Image Resizer
+          </Link>
+          <Link href="/background-remover" className="block text-blue-200 hover:text-white transition font-medium">
+            Background Remover
+          </Link>
+          <Link href="/image-converter" className="block text-blue-200 hover:text-white transition font-medium">
+            Image Converter
+          </Link>
+          <Link href="/passport-photo-maker" className="block text-blue-200 hover:text-white transition font-medium">
+            Passport Photo Maker
+          </Link>
+          <Link href="/image-to-text" className="block text-blue-200 hover:text-white transition font-medium">
+            Image to Text (OCR)
+          </Link>
+          <Link href="/word-counter" className="block text-blue-200 hover:text-white transition font-medium">
+            Word Counter
+          </Link>
+          <Link href="/json-formatter" className="block text-blue-200 hover:text-white transition font-medium">
+            JSON Formatter
+          </Link>
+          <Link href="/age-calculator" className="block text-blue-200 hover:text-white transition font-medium">
+            Age Calculator
+          </Link>
+          <Link href="/percentage-calculator" className="block text-blue-200 hover:text-white transition font-medium">
+            Percentage Calculator
+          </Link>
+          <Link href="/emi-calculator" className="block text-blue-200 hover:text-white transition font-medium">
+            EMI Calculator
+          </Link>
+          <Link href="/discount-calculator" className="block text-blue-200 hover:text-white transition font-medium">
+            Discount Calculator
+          </Link>
+          <Link href="/gst-calculator" className="block text-blue-200 hover:text-white transition font-medium">
+            GST Calculator
           </Link>
         </div>
 
@@ -79,7 +119,7 @@ export function Footer() {
             Sign Up
           </Link>
           <Link href="/pdf-tools" className="block text-blue-200 hover:text-white transition">
-            All 17 Tools Catalog
+            All Tools Catalog
           </Link>
         </div>
 
@@ -87,7 +127,7 @@ export function Footer() {
         <div className="space-y-3 col-span-2 md:col-span-1">
           <h3 className="font-bold text-white text-base">Privacy &amp; Security</h3>
           <p className="text-xs text-blue-200 leading-relaxed">
-            Choose from browser-based tools and server-powered conversions. ToolNova selects the appropriate processing method for each tool. Server-assisted jobs use isolated temporary sandboxes with automated cleanup.
+            Choose from browser-based tools and server-powered conversions. Toolino selects the appropriate processing method for each tool. Server-assisted jobs use isolated temporary sandboxes with automated cleanup.
           </p>
           <div className="inline-block rounded-md bg-blue-800/90 border border-blue-700 px-3 py-1 text-xs text-emerald-300 font-semibold">
             🛡️ Ephemeral &amp; In-Browser Security
@@ -97,7 +137,7 @@ export function Footer() {
 
       {/* Bottom */}
       <div className="max-w-7xl mx-auto px-6 mt-10 pt-6 border-t border-blue-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-blue-300 gap-3">
-        <p>© 2026 ToolNova. All rights reserved.</p>
+        <p>© 2026 Toolino. All rights reserved.</p>
         <p className="text-blue-400">Created by Sameer Rout &amp; Sampangi Sony</p>
       </div>
     </footer>

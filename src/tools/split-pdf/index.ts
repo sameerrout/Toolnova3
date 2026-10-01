@@ -157,7 +157,7 @@ export const splitPdfTool: IToolDefinition<SplitPdfOptions> = {
     const pdfBytes = await outputDoc.save();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-split-${dateStamp}.pdf`;
+    const fileName = `toolino-split-${dateStamp}.pdf`;
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: 'application/pdf',
     });

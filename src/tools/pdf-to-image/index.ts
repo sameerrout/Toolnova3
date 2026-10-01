@@ -210,7 +210,7 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
       type: 'blob',
       mimeType: 'application/zip',
     });
-    const zipName = `toolnova-images-${dateStamp}.zip`;
+    const zipName = `toolino-images-${dateStamp}.zip`;
 
     onProgress({ progress: 100, statusText: 'Export complete!' });
 

@@ -53,6 +53,8 @@ const JOBS_BASE_DIR =
   process.env.TOOLNOVA_TEMP_DIR ||
   path.join(process.cwd(), 'backend', 'storage', 'jobs');
 
+const SERVER_BOOT_TIME = Date.now();
+
 // Ensure base storage directory exists
 if (!fs.existsSync(JOBS_BASE_DIR)) {
   fs.mkdirSync(JOBS_BASE_DIR, { recursive: true });
@@ -93,7 +95,10 @@ class JobManager {
             try {
               const meta: JobMetadata = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
               // If previously running when server crashed/restarted, mark as failed/recoverable
-              if (meta.status === 'processing' || meta.status === 'queued') {
+              if (
+                (meta.status === 'processing' || meta.status === 'queued') &&
+                meta.createdAt < SERVER_BOOT_TIME - 5000
+              ) {
                 meta.status = 'failed';
                 meta.errorCode = 'SERVER_RESTARTED';
                 meta.errorMessage = 'The processing server was restarted. Please re-submit your document.';
@@ -163,12 +168,8 @@ class JobManager {
   ): Promise<JobMetadata> {
     // Validate file signature based on tool (§22, §29)
     let expectedCategory = '';
-    if (toolId === 'pdf-to-word' || toolId === 'pdf-to-powerpoint') {
+    if (toolId === 'pdf-to-powerpoint') {
       expectedCategory = 'pdf';
-    } else if (toolId === 'word-to-pdf') {
-      expectedCategory = 'docx';
-    } else if (toolId === 'powerpoint-to-pdf') {
-      expectedCategory = 'pptx';
     }
 
     if (expectedCategory && !this.validateFileSignature(fileBuffer, expectedCategory)) {
@@ -314,18 +315,6 @@ class JobManager {
       scriptName = 'pdf_to_pptx.py';
       outFileName = `${baseName}.pptx`;
       outMime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-    } else if (job.meta.toolId === 'pdf-to-word') {
-      scriptName = 'pdf_to_word.py';
-      outFileName = `${baseName}.docx`;
-      outMime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-    } else if (job.meta.toolId === 'word-to-pdf') {
-      scriptName = 'word_to_pdf.py';
-      outFileName = `${baseName}.pdf`;
-      outMime = 'application/pdf';
-    } else if (job.meta.toolId === 'powerpoint-to-pdf') {
-      scriptName = 'pptx_to_pdf.py';
-      outFileName = `${baseName}.pdf`;
-      outMime = 'application/pdf';
     } else {
       this.failJob(jobId, 'UNSUPPORTED_TOOL', `Backend worker for tool ${job.meta.toolId} is not available.`);
       return;
@@ -335,7 +324,6 @@ class JobManager {
     const outputPath = path.join(outputDir, outFileName);
     job.outputPath = outputPath;
 
-    // Execute Python worker using configurable python executable (§23)
     const args = [scriptPath, '--input', inputPath, '--output', outputPath];
     const proc = spawn(this.pythonBin, args, {
       cwd: process.cwd(),
@@ -343,6 +331,23 @@ class JobManager {
     });
 
     job.process = proc;
+
+    let workerError: string | null = null;
+    let workerErrorCode: string | null = null;
+
+    // Timeout guard (§7): Terminate stuck worker processes
+    const timeoutMs = parseInt(process.env.TOOLNOVA_JOB_TIMEOUT_MS || '300000', 10);
+    const timeoutTimer = setTimeout(() => {
+      if (job.process && !job.process.killed) {
+        job.process.kill('SIGTERM');
+        setTimeout(() => {
+          try {
+            if (job.process && !job.process.killed) job.process.kill('SIGKILL');
+          } catch {}
+        }, 3000).unref();
+        this.failJob(jobId, 'JOB_TIMEOUT', 'Document processing exceeded maximum time limit.');
+      }
+    }, timeoutMs);
 
     proc.stdout.on('data', (chunk: Buffer) => {
       const text = chunk.toString();
@@ -374,15 +379,33 @@ class JobManager {
               updatedAt: job.meta.updatedAt,
             });
           } catch {}
+        } else if (line.startsWith('__ERROR__')) {
+          try {
+            const data = JSON.parse(line.slice(9));
+            if (data.error) workerError = data.error;
+            if (data.code) workerErrorCode = data.code;
+          } catch {}
         }
       }
     });
 
     proc.stderr.on('data', (chunk: Buffer) => {
-      console.warn(`[Worker stderr ${jobId}]:`, chunk.toString().trim());
+      const text = chunk.toString();
+      console.warn(`[Worker stderr ${jobId}]:`, text.trim());
+      const lines = text.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('__ERROR__')) {
+          try {
+            const data = JSON.parse(line.slice(9));
+            if (data.error) workerError = data.error;
+            if (data.code) workerErrorCode = data.code;
+          } catch {}
+        }
+      }
     });
 
     proc.on('close', (code) => {
+      clearTimeout(timeoutTimer);
       resourceManager.releaseResources(jobId);
 
       if (job.meta.status === 'cancelled') return;
@@ -411,13 +434,14 @@ class JobManager {
       } else {
         this.failJob(
           jobId,
-          'CONVERSION_FAILED',
-          'Document conversion failed. Please check the file for corruption or password encryption.'
+          workerErrorCode || 'CONVERSION_FAILED',
+          workerError || 'Document conversion failed. Please check the file for corruption or password encryption.'
         );
       }
     });
 
     proc.on('error', (err) => {
+      clearTimeout(timeoutTimer);
       resourceManager.releaseResources(jobId);
       console.error(`[Worker error ${jobId}]:`, err);
       this.failJob(jobId, 'WORKER_CRASH', 'The processing worker encountered an unexpected system error.');
@@ -526,4 +550,11 @@ class JobManager {
   }
 }
 
-export const jobManager = new JobManager();
+const globalForJobManager = globalThis as unknown as {
+  toolnovaJobManager: JobManager | undefined;
+};
+
+export const jobManager = globalForJobManager.toolnovaJobManager ?? new JobManager();
+if (process.env.NODE_ENV !== 'production') {
+  globalForJobManager.toolnovaJobManager = jobManager;
+}

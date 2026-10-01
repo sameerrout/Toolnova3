@@ -51,10 +51,8 @@ const nextConfig = {
         ],
     }, ],
     rewrites: async () => [
-        { source: '/pdf-to-word', destination: '/tools/pdf-to-word' },
-        { source: '/word-to-pdf', destination: '/tools/word-to-pdf' },
+        { source: '/image-to-pdf', destination: '/tools/image-to-pdf' },
         { source: '/pdf-to-powerpoint', destination: '/tools/pdf-to-powerpoint' },
-        { source: '/powerpoint-to-pdf', destination: '/tools/powerpoint-to-pdf' },
         { source: '/qr-code-generator', destination: '/tools/qr-code-generator' },
         { source: '/pdf-compressor', destination: '/tools/compress-pdf' },
         { source: '/pdf-merger', destination: '/tools/merge-pdf' },

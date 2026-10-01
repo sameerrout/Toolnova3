@@ -75,6 +75,6 @@ export function buildQrPayload(options: QrCodeOptions): string {
 
     case 'text':
     default:
-      return (options.text || '').trim() || 'Toolnova - High-Performance Online Tools';
+      return (options.text || '').trim() || 'Toolino - High-Performance Online Tools';
   }
 }

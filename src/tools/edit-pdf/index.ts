@@ -142,7 +142,7 @@ export const editPdfTool: IToolDefinition<EditPdfOptions> = {
     const pdfBytes = await pdfDoc.save();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-edited-${dateStamp}.pdf`;
+    const fileName = `toolino-edited-${dateStamp}.pdf`;
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: 'application/pdf',
     });

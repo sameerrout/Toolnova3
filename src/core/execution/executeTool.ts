@@ -35,10 +35,7 @@ export async function executeTool<TOptions = any>({
   // Core conversion tools that require high-fidelity server workers
   const prefersServerWorker =
     manifest.executionMode === 'SERVER' ||
-    manifest.id === 'pdf-to-word' ||
-    manifest.id === 'word-to-pdf' ||
-    manifest.id === 'pdf-to-powerpoint' ||
-    manifest.id === 'powerpoint-to-pdf';
+    manifest.id === 'pdf-to-powerpoint';
 
   if (isPureClient || (!prefersServerWorker && files.length > 0 && files[0].file.size < 5 * 1024 * 1024)) {
     // CLIENT_EXECUTOR
@@ -58,7 +55,9 @@ export async function executeTool<TOptions = any>({
     onProgress,
     signal,
     onJobAssigned,
-    fallbackClientProcess: tool.process ? () => tool.process({ files, options, onProgress, signal }) : undefined,
+    fallbackClientProcess: tool.process
+      ? () => tool.process({ files, options, onProgress, signal })
+      : undefined,
   });
 }
 

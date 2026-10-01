@@ -134,7 +134,7 @@ export const organizePdfTool: IToolDefinition<OrganizePdfOptions> = {
     const pdfBytes = await newDoc.save();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-organized-${dateStamp}.pdf`;
+    const fileName = `toolino-organized-${dateStamp}.pdf`;
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: 'application/pdf',
     });

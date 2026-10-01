@@ -1,5 +1,5 @@
 {
-    "name": "toolnova",
+    "name": "toolino",
     "version": "1.0.0",
     "private": true,
     "description": "Toolnova - Privacy-first common tool platform",
@@ -9,7 +9,7 @@
         "start": "next start",
         "lint": "next lint",
         "type-check": "tsc --noEmit",
-        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs && node tests/verifyUnit.mjs"
+        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs && node tests/verifyUnit.mjs && node tests/verifyEmiCalculator.mjs && node tests/verifyDiscountCalculator.mjs && node tests/verifyPdfSummarizer.mjs && node tests/verifyGstCalculator.mjs && node tests/verifyManagerAnalytics.mjs && node tests/verifyPdfEditorSimplified.mjs"
     },
     "dependencies": {
         "@pdfsmaller/pdf-encrypt": "^1.2.0",

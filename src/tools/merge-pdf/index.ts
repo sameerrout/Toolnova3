@@ -119,7 +119,7 @@ export const mergePdfTool: IToolDefinition<MergePdfOptions> = {
     const mergedBytes = await mergedDoc.save();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-merged-${dateStamp}.pdf`;
+    const fileName = `toolino-merged-${dateStamp}.pdf`;
     const blob = new Blob([mergedBytes.buffer as ArrayBuffer], {
       type: 'application/pdf',
     });

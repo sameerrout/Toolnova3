@@ -86,7 +86,7 @@ export const pdfToPowerpointTool: IToolDefinition<PdfToPowerpointOptions> = {
     pptx.layout = options.slideLayout === '4x3' ? 'LAYOUT_4x3' : 'LAYOUT_16x9';
     const deckTitle = options.presentationTitle.trim() || file.name.replace(/\.[^/.]+$/, '');
     pptx.title = deckTitle;
-    pptx.subject = 'Converted from PDF with Toolnova';
+    pptx.subject = 'Converted from PDF with Toolino';
 
     onProgress({ progress: 20, statusText: 'Loading PDF document...' });
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.js');

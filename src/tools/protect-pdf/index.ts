@@ -96,8 +96,8 @@ export const protectPdfTool: IToolDefinition<ProtectPdfOptions> = {
     onProgress({ progress: 35, statusText: 'Normalizing document structure...' });
     // Normalize and sanitize PDF structure with pdf-lib
     const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
-    pdfDoc.setProducer('Toolnova Security Engine');
-    pdfDoc.setCreator('Toolnova');
+    pdfDoc.setProducer('Toolino Security Engine');
+    pdfDoc.setCreator('Toolino');
     const normalizedBytes = await pdfDoc.save();
 
     if (signal?.aborted) {

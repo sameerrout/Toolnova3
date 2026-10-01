@@ -135,7 +135,7 @@ export function ResultPanel({ output, onReset, className }: ResultPanelProps) {
                 <p className="font-semibold text-amber-800">Browser Security Notice</p>
                 <p className="text-[11px] text-amber-700 mt-0.5">
                   If Chrome shows <em>&quot;Download insecure file&quot;</em>, click <strong>Keep anyway</strong>.
-                  Chrome flags all file downloads on network IP addresses. For seamless downloads without warnings, open Toolnova on{' '}
+                  Chrome flags all file downloads on network IP addresses. For seamless downloads without warnings, open Toolino on{' '}
                   <a
                     href="http://localhost:3000"
                     className="underline font-bold text-amber-900 hover:text-amber-950"

@@ -8,12 +8,10 @@ import {
   AlertCircle,
   RefreshCw,
   CheckCircle2,
-  Lock,
 } from 'lucide-react';
 import { IToolDefinition } from '@/core/contracts/toolDefinition';
 import { ProcessingState, ProcessedOutput, ProcessingProgress } from '@/core/types/tool';
 import { Container } from '@/components/common/Container';
-import { PrivacyNotice } from '@/components/common/PrivacyNotice';
 import { FileDropZone } from '@/components/common/FileDropZone';
 import { FileList } from '@/components/common/FileList';
 import { SelectedFileItem } from '@/components/common/FileItem';
@@ -118,7 +116,13 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
           })
         );
       } else {
-        const normalized = normalizeError(err, 'Failed to process files.');
+        const errorMsg = err instanceof Error && err.message ? err.message : 'Failed to process files.';
+        const normalized = new AppError({
+          code: 'PROCESSING_FAILED',
+          userMessage: errorMsg,
+          technicalDetails: err instanceof Error ? err.stack || err.message : String(err),
+          retryable: true,
+        });
         setError(normalized);
         setState('error');
       }
@@ -185,22 +189,11 @@ export function ToolLayout({ tool }: ToolLayoutProps) {
                 v{manifest.version}
               </Badge>
             </div>
-
-            <div className="flex items-center gap-2">
-              {manifest.executionMode === 'LOCAL' && (
-                <Badge variant="success" size="md">
-                  <Lock className="h-3.5 w-3.5" />
-                  Client-Side Engine
-                </Badge>
-              )}
-            </div>
           </div>
 
           <p className="text-sm text-slate-600 leading-relaxed max-w-3xl">
             {manifest.description}
           </p>
-
-          <PrivacyNotice executionMode={manifest.executionMode} detailed />
         </div>
 
         {/* Main Interactive Stage */}

@@ -6,9 +6,9 @@ import { Container } from '@/components/common/Container';
 import { TOOLS_CATALOG } from '@/data/toolsCatalog';
 
 export const metadata: Metadata = {
-  title: 'Document Conversion Tools - Word, PDF & PowerPoint | Toolnova',
+  title: 'Document Conversion Tools - PDF to PowerPoint | Toolino',
   description:
-    'Free high-fidelity document conversion tools. Convert Word to PDF, PDF to Word, PowerPoint to PDF, and PDF to PowerPoint online with layout preservation.',
+    'Free high-fidelity document conversion tools. Convert PDF to PowerPoint online with guaranteed slide layout preservation.',
   alternates: {
     canonical: 'https://toolnova.com/document-tools',
   },
@@ -18,10 +18,7 @@ export default function DocumentToolsPage() {
   const documentTools = TOOLS_CATALOG.filter(
     (t) =>
       t.isAvailable &&
-      (t.id === 'pdf-to-word' ||
-        t.id === 'word-to-pdf' ||
-        t.id === 'pdf-to-powerpoint' ||
-        t.id === 'powerpoint-to-pdf')
+      (t.id === 'pdf-to-powerpoint')
   );
 
   return (
@@ -46,7 +43,7 @@ export default function DocumentToolsPage() {
             Document Conversion Tools
           </h1>
           <p className="text-sm text-slate-600 mt-2">
-            Transform Word documents, PowerPoint presentations, and PDFs with layout fidelity and zero persistent file retention.
+            Transform PowerPoint presentations and PDFs with layout fidelity and zero persistent file retention.
           </p>
         </div>
 
@@ -59,13 +56,10 @@ export default function DocumentToolsPage() {
               className="group bg-white p-7 rounded-3xl border border-slate-200/80 shadow-xs hover:border-blue-300 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <div className="mb-4">
+                  <div className="inline-flex w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 items-center justify-center font-bold text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <FileText className="w-6 h-6" />
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                    {tool.badge || 'Verified'}
-                  </span>
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                   {tool.name}

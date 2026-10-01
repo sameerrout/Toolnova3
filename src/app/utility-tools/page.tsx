@@ -6,7 +6,7 @@ import { Container } from '@/components/common/Container';
 import { TOOLS_CATALOG } from '@/data/toolsCatalog';
 
 export const metadata: Metadata = {
-  title: 'Online Utility & Productivity Tools | Toolnova',
+  title: 'Online Utility & Productivity Tools | Toolino',
   description:
     'Free online productivity and utility tools. Generate high-resolution QR codes, encode contact data, and manage documents with ease and privacy.',
   alternates: {
@@ -54,13 +54,10 @@ export default function UtilityToolsPage() {
               className="group bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xs hover:border-blue-300 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <div className="mb-4">
+                  <div className="inline-flex w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 items-center justify-center font-bold text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <QrCode className="w-7 h-7" />
                   </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                    {tool.badge || 'Verified'}
-                  </span>
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                   {tool.name}

@@ -42,3 +42,7 @@ __pycache__/
 *.pyc
 *.tmp
 
+# archives and distributions
+*.zip
+dist/
+

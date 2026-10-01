@@ -8,6 +8,8 @@ export interface User {
   email: string;
   profile_image: string | null;
   auth_provider: 'local' | 'google';
+  role?: 'USER' | 'ADMIN' | 'CO_DEVELOPER';
+  managerAccess?: boolean;
 }
 
 interface AuthContextType {

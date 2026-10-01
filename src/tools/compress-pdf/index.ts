@@ -82,8 +82,8 @@ export const compressPdfTool: IToolDefinition<CompressPdfOptions> = {
     const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: false });
 
     // Clean up creator & producer tags to shave header bytes
-    pdfDoc.setProducer('Toolnova Local Engine');
-    pdfDoc.setCreator('Toolnova');
+    pdfDoc.setProducer('Toolino Local Engine');
+    pdfDoc.setCreator('Toolino');
 
     onProgress({ progress: 75, statusText: 'Re-compressing streams and saving...' });
     const compressedBytes = await pdfDoc.save({
@@ -103,7 +103,7 @@ export const compressPdfTool: IToolDefinition<CompressPdfOptions> = {
     }
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-compressed-${dateStamp}.pdf`;
+    const fileName = `toolino-compressed-${dateStamp}.pdf`;
 
     onProgress({ progress: 100, statusText: 'Compression complete!' });
 

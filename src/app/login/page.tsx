@@ -52,7 +52,7 @@ export default function LoginPage() {
         <div className="flex justify-center mb-6">
           <Image
             src="/logo1.png"
-            alt="ToolNova Logo"
+            alt="Toolino Logo"
             width={56}
             height={56}
             className="h-14 w-auto object-contain hover:scale-105 transition"
@@ -61,7 +61,7 @@ export default function LoginPage() {
         </div>
 
         <h2 className="text-2xl font-bold text-center mb-6 text-slate-800">
-          Login to ToolNova
+          Login to Toolino
         </h2>
 
         {errorMessage && (

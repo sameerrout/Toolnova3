@@ -112,7 +112,7 @@ export const rotatePdfTool: IToolDefinition<RotatePdfOptions> = {
     const pdfBytes = await pdfDoc.save();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-    const fileName = `toolnova-rotated-${dateStamp}.pdf`;
+    const fileName = `toolino-rotated-${dateStamp}.pdf`;
     const blob = new Blob([pdfBytes.buffer as ArrayBuffer], {
       type: 'application/pdf',
     });

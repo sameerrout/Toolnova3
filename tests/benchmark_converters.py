@@ -92,11 +92,6 @@ def main():
         worker_pptx = os.path.join(BASE_DIR, "backend", "workers", "pdf_to_pptx.py")
         run_benchmark_job("PDF to PowerPoint", worker_pptx, pdf_path, pptx_out, count)
 
-        # 2. Benchmark PDF -> Word
-        docx_out = os.path.join(TEMP_DIR, f"bench_{count}p.docx")
-        worker_word = os.path.join(BASE_DIR, "backend", "workers", "pdf_to_word.py")
-        run_benchmark_job("PDF to Word", worker_word, pdf_path, docx_out, count)
-
     print("\n[SUCCESS] ALL BENCHMARK TESTS COMPLETED WITH BOUNDED MEMORY CONSUMPTION!\n")
 
 if __name__ == "__main__":

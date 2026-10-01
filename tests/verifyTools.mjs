@@ -7,7 +7,7 @@ import JSZip from 'jszip';
 import PptxGenJS from 'pptxgenjs';
 import QRCode from 'qrcode';
 
-console.log('🚀 Running Toolnova Complete 17-Tool Integration Test Suite...\n');
+console.log('🚀 Running Toolnova Complete 14-Tool Integration Test Suite...\n');
 
 // 1. TEST: PDF Generation (Image to PDF)
 console.log('Test 1: Creating PDF Document (Image to PDF)...');
@@ -108,12 +108,6 @@ const finalOrganized = await PDFDocument.load(organizedBytes);
 assert.strictEqual(finalOrganized.getPageCount(), 3);
 console.log(`  ✓ Successfully reversed/reordered 3 pages (${organizedBytes.length} bytes)`);
 
-// 8. TEST: Unlock PDF
-console.log('\nTest 8: Unlocking PDF Structure (Unlock PDF)...');
-const unlockDoc = await PDFDocument.load(splitBytes, { ignoreEncryption: true });
-const unlockedBytes = await unlockDoc.save();
-assert(unlockedBytes.length > 0);
-console.log(`  ✓ Successfully unlocked and sanitized PDF (${unlockedBytes.length} bytes)`);
 
 // 9. TEST: Compress PDF
 console.log('\nTest 9: Compressing Streams (Compress PDF)...');
@@ -158,39 +152,8 @@ const zipBytes = await zip.generateAsync({ type: 'uint8array' });
 assert(zipBytes.length > 0, 'Zip bytes should be non-empty');
 console.log(`  ✓ Successfully created multi-image ZIP package (${zipBytes.length} bytes)`);
 
-// 13. TEST: PDF to Word (DOCX Compilation)
-console.log('\nTest 13: Generating Word Document (.docx) (PDF to Word)...');
-const wordDoc = new Document({
-    sections: [{
-        children: [
-            new Paragraph({
-                children: [new TextRun({ text: 'Toolnova Converted Document', bold: true, size: 28 })],
-            }),
-            new Paragraph({
-                children: [new TextRun({ text: 'This text was converted from PDF client-side.', size: 22 })],
-            }),
-        ],
-    }, ],
-});
-const wordBytes = await Packer.toBuffer(wordDoc);
-assert(wordBytes.length > 0, 'DOCX buffer should be non-empty');
-console.log(`  ✓ Successfully generated Microsoft Word .docx file (${wordBytes.length} bytes)`);
-
-// 14. TEST: Word to PDF (DOCX Extraction & Pagination)
-console.log('\nTest 14: Parsing DOCX and Converting to PDF (Word to PDF)...');
-const extractResult = await mammoth.extractRawText({ buffer: wordBytes });
-assert(extractResult.value.includes('Toolnova Converted Document'));
-
-const wordToPdfDoc = await PDFDocument.create();
-const wPage = wordToPdfDoc.addPage([595.28, 841.89]);
-const wFont = await wordToPdfDoc.embedFont(StandardFonts.Helvetica);
-wPage.drawText(extractResult.value.trim(), { x: 50, y: 750, size: 12, font: wFont });
-const wPdfBytes = await wordToPdfDoc.save();
-assert(wPdfBytes.length > 0);
-console.log(`  ✓ Successfully parsed DOCX text and paginated into PDF (${wPdfBytes.length} bytes)`);
-
-// 15. TEST: PDF to PowerPoint (PPTX Generation)
-console.log('\nTest 15: Generating PowerPoint Deck (.pptx) (PDF to PowerPoint)...');
+// 13. TEST: PDF to PowerPoint (PPTX Generation)
+console.log('\nTest 13: Generating PowerPoint Deck (.pptx) (PDF to PowerPoint)...');
 const pptx = new PptxGenJS();
 const pSlide1 = pptx.addSlide();
 pSlide1.addText('Toolnova Slide 1', { x: 1, y: 1, fontSize: 24, bold: true });
@@ -200,25 +163,8 @@ const pptxBytes = await pptx.write({ outputType: 'nodebuffer' });
 assert(pptxBytes.length > 0, 'PPTX buffer should be non-empty');
 console.log(`  ✓ Successfully generated PowerPoint .pptx deck (${pptxBytes.length} bytes)`);
 
-// 16. TEST: PowerPoint to PDF (PPTX Extraction & Slide Layout)
-console.log('\nTest 16: Extracting PPTX Slides and Converting to PDF (PowerPoint to PDF)...');
-const pZip = await JSZip.loadAsync(pptxBytes);
-const slideXmlKeys = Object.keys(pZip.files).filter((k) => /^ppt\/slides\/slide\d+\.xml$/.test(k));
-assert(slideXmlKeys.length === 2, 'Should find 2 slide XML files');
-
-const pptToPdfDoc = await PDFDocument.create();
-for (let i = 0; i < slideXmlKeys.length; i++) {
-    const sPage = pptToPdfDoc.addPage([841.89, 595.28]); // Landscape
-    sPage.drawText(`Slide ${i + 1} Content`, { x: 50, y: 500, size: 20, font: wFont });
-}
-const pptToPdfBytes = await pptToPdfDoc.save();
-assert(pptToPdfBytes.length > 0);
-const loadedPptPdf = await PDFDocument.load(pptToPdfBytes);
-assert.strictEqual(loadedPptPdf.getPageCount(), 2, 'PPT to PDF should have 2 pages');
-console.log(`  ✓ Successfully extracted PPTX slides and rendered presentation PDF (${pptToPdfBytes.length} bytes)`);
-
-// 17. TEST: QR Code Generator (PNG and SVG Generation)
-console.log('\nTest 17: Generating QR Codes in PNG and Vector SVG (QR Code Generator)...');
+// 14. TEST: QR Code Generator (PNG and SVG Generation)
+console.log('\nTest 14: Generating QR Codes in PNG and Vector SVG (QR Code Generator)...');
 const qrDataUrl = await QRCode.toDataURL('https://toolnova.com', {
     width: 512,
     margin: 2,
@@ -233,4 +179,4 @@ const qrSvg = await QRCode.toString('WIFI:S:ToolnovaWiFi;T:WPA;P:Password123;;',
 assert(qrSvg.includes('<svg') && qrSvg.includes('</svg>'), 'QR SVG output should be valid SVG XML');
 console.log(`  ✓ Successfully generated PNG (${qrDataUrl.length} chars) and vector SVG (${qrSvg.length} chars)`);
 
-console.log('\n🎉 ALL 17 TOOLNOVA TOOLS INTEGRATION TESTS PASSED WITH 100% SUCCESS!\n');
+console.log('\n🎉 ALL 14 TOOLNOVA TOOLS INTEGRATION TESTS PASSED WITH 100% SUCCESS!\n');

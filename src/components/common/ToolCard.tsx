@@ -33,8 +33,8 @@ export function ToolCard({ tool, className }: ToolCardProps) {
       )}
     >
       <div>
-        {/* Header row: Icon & Status / Mode */}
-        <div className="flex items-start justify-between gap-3 mb-4">
+        {/* Header row: Icon */}
+        <div className="mb-4">
           <div
             className={cn(
               'flex h-11 w-11 items-center justify-center rounded-xl',
@@ -44,29 +44,6 @@ export function ToolCard({ tool, className }: ToolCardProps) {
             )}
           >
             <FileText className="h-5 w-5" />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5 justify-end">
-            {tool.isPopular && isAvailable && (
-              <Badge variant="purple" size="sm">
-                <Sparkles className="h-3 w-3" />
-                Popular
-              </Badge>
-            )}
-
-            {tool.executionMode === 'LOCAL' && (
-              <Badge variant="success" size="sm" title="Client-side processing">
-                <Lock className="h-3 w-3" />
-                In-Browser
-              </Badge>
-            )}
-
-            {!isAvailable && (
-              <Badge variant="outline" size="sm">
-                <Clock className="h-3 w-3" />
-                Coming Soon
-              </Badge>
-            )}
           </div>
         </div>
 

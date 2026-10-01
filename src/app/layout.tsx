@@ -4,6 +4,7 @@ import './globals.css';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/context/AuthContext';
+import { AnalyticsTracker } from '@/components/common/AnalyticsTracker';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -12,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'ToolNova - All-in-One Free Online Tools',
+  title: 'Toolino - All-in-One Free Online Tools',
   description:
     'Free, fast, and privacy-conscious online tools. Convert, edit, and optimize PDFs, images, and documents easily inside your browser without uploading files to servers.',
   keywords: [
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     'rotate pdf',
     'privacy-first tools',
     'client-side pdf converter',
-    'ToolNova',
+    'Toolino',
   ],
 };
 
@@ -36,6 +37,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="flex min-h-screen flex-col bg-slate-50 font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
         <AuthProvider>
+          <AnalyticsTracker />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />

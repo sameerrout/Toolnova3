@@ -113,10 +113,10 @@ export function QrCodeGeneratorOptionsComponent({
     if (options.format === 'svg') {
       const blob = new Blob([svgString], { type: 'image/svg+xml' });
       a.href = URL.createObjectURL(blob);
-      a.download = `toolnova-qr-${Date.now()}.svg`;
+      a.download = `toolino-qr-${Date.now()}.svg`;
     } else {
       a.href = dataUrl;
-      a.download = `toolnova-qr-${Date.now()}.png`;
+      a.download = `toolino-qr-${Date.now()}.png`;
     }
     document.body.appendChild(a);
     a.click();

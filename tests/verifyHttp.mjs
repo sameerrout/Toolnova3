@@ -11,19 +11,15 @@ const urls = [
     'http://localhost:3000/tools/watermark-pdf',
     'http://localhost:3000/tools/pdf-page-numbers',
     'http://localhost:3000/tools/organize-pdf',
-    'http://localhost:3000/tools/unlock-pdf',
     'http://localhost:3000/tools/compress-pdf',
     'http://localhost:3000/tools/edit-pdf',
     'http://localhost:3000/tools/pdf-to-image',
     'http://localhost:3000/tools/protect-pdf',
-    'http://localhost:3000/tools/pdf-to-word',
-    'http://localhost:3000/tools/word-to-pdf',
-    'http://localhost:3000/tools/pdf-to-powerpoint',
-    'http://localhost:3000/tools/powerpoint-to-pdf'
+    'http://localhost:3000/tools/pdf-to-powerpoint'
 ];
 
 async function checkAll() {
-    console.log('Testing HTTP responses across all 21 Toolnova platform endpoints...\n');
+    console.log('Testing HTTP responses across active Toolino platform endpoints...\n');
     let failures = 0;
     for (const u of urls) {
         try {
@@ -40,8 +36,23 @@ async function checkAll() {
         }
     }
 
+    // Verify removed tool returns 404
+    console.log('\nTesting that removed Unlock PDF route returns 404 Not Found...');
+    try {
+        const removedRes = await fetch('http://localhost:3000/tools/unlock-pdf');
+        if (removedRes.status === 404) {
+            console.log('  ✓ 404 Not Found: http://localhost:3000/tools/unlock-pdf (Successfully removed)');
+        } else {
+            console.log(`  ✗ Expected 404 but got ${removedRes.status} for http://localhost:3000/tools/unlock-pdf`);
+            failures++;
+        }
+    } catch (e) {
+        console.log(`  ✗ FAIL checking removed route: ${e.message}`);
+        failures++;
+    }
+
     if (failures === 0) {
-        console.log('\n🎉 ALL 21 TOOLNOVA ROUTES RETURNED 200 OK WITH 0 FAILURES!');
+        console.log('\n🎉 ALL ROUTES VALIDATED WITH 0 FAILURES!');
     } else {
         console.log(`\n❌ Completed with ${failures} route failures.`);
         process.exit(1);

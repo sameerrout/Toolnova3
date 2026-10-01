@@ -3,14 +3,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { LogOut, User, ChevronDown, Menu, X } from 'lucide-react';
+import { LogOut, User, ChevronDown, Menu, X, ShieldCheck } from 'lucide-react';
 
 export function Header() {
+  const pathname = usePathname();
   const { user, isLoading, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isManager = Boolean(
+    user &&
+      (user.managerAccess === true ||
+        (user.email &&
+          ['sameerrout2004@gmail.com', 'sonysampangi9@gmail.com'].includes(
+            user.email.toLowerCase().trim()
+          )))
+  );
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -30,18 +41,18 @@ export function Header() {
         <Link href="/" className="flex items-center gap-3 cursor-pointer group">
           <Image
             src="/logo1.png"
-            alt="ToolNova Logo"
+            alt="Toolino Logo"
             width={48}
             height={48}
             className="h-12 w-12 object-contain group-hover:scale-110 transition duration-300"
             priority
           />
           <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-            Tool<span className="text-blue-600">Nova</span>
+            Tool<span className="text-blue-600">ino</span>
           </span>
         </Link>
 
-        {/* Desktop Navigation - Strictly Home, About, and Login/Signup or User Profile */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 text-slate-600 font-medium text-sm">
           <Link href="/" className="hover:text-blue-600 transition">
             Home
@@ -50,10 +61,23 @@ export function Header() {
             About
           </Link>
 
+          {/* Manager link - strictly rendered only for ADMIN and CO_DEVELOPER */}
+          {isManager && (
+            <Link
+              href="/manager"
+              className={`transition font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-2xs ${
+                pathname === '/manager'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-blue-600 bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/80'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Manager</span>
+            </Link>
+          )}
+
           {/* Auth State */}
-          {isLoading ? (
-            <div className="h-8 w-20 animate-pulse rounded-lg bg-slate-100" />
-          ) : user ? (
+          {user ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -87,6 +111,16 @@ export function Header() {
                   </div>
 
                   <div className="pt-1">
+                    {isManager && (
+                      <Link
+                        href="/manager"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition cursor-pointer mb-1"
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        <span>Manager Dashboard</span>
+                      </Link>
+                    )}
                     <button
                       type="button"
                       onClick={async () => {
@@ -166,6 +200,16 @@ export function Header() {
           >
             About
           </Link>
+          {isManager && (
+            <Link
+              href="/manager"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Manager Dashboard</span>
+            </Link>
+          )}
 
           <div className="pt-2 border-t border-slate-100">
             {user ? (
