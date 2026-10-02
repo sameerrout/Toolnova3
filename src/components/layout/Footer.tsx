@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf, pdf-to-image, rotate-pdf)
+  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf, pdf-to-image, rotate-pdf, watermark-pdf)
   if (
     pathname?.includes('image-to-pdf') ||
     pathname?.includes('merge-pdf') ||
@@ -16,7 +16,8 @@ export function Footer() {
     pathname?.includes('pdf-splitter') ||
     pathname?.includes('pdf-to-image') ||
     pathname?.includes('rotate-pdf') ||
-    pathname?.includes('pdf-rotator')
+    pathname?.includes('pdf-rotator') ||
+    pathname?.includes('watermark-pdf')
   ) {
     return null;
   }

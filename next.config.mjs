@@ -61,6 +61,7 @@ const nextConfig = {
         { source: '/split-pdf', destination: '/tools/split-pdf' },
         { source: '/pdf-rotator', destination: '/tools/rotate-pdf' },
         { source: '/rotate-pdf', destination: '/tools/rotate-pdf' },
+        { source: '/watermark-pdf', destination: '/tools/watermark-pdf' },
     ],
 };
 
