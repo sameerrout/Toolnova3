@@ -1,22 +1,23 @@
 import JSZip from 'jszip';
 import { IToolDefinition, ToolProcessParams } from '@/core/contracts/toolDefinition';
 import { ToolManifest, ProcessedOutput } from '@/core/types/tool';
-import {
-  PdfToImageOptions,
-  PdfToImageOptionsComponent,
-} from './PdfToImageOptions';
+
+export interface PdfToImageOptions {
+  format?: 'png';
+  scale?: number;
+}
 
 export const pdfToImageManifest: ToolManifest = {
   id: 'pdf-to-image',
   name: 'PDF to Image',
   category: 'pdf',
   description:
-    'Extract pages from your PDF documents into high-resolution PNG or JPG images, with ZIP export for multi-page documents.',
+    'Convert PDF document pages into high-quality, crystal-clear PNG images with automatic ZIP export for multi-page files.',
   version: '1.0.0',
   executionMode: 'LOCAL',
   runtime: 'browser',
   inputFormats: ['PDF'],
-  outputFormats: ['PNG', 'JPG', 'ZIP'],
+  outputFormats: ['PNG', 'ZIP'],
   permissions: {
     readInputFiles: true,
     writeOutputFiles: true,
@@ -39,42 +40,11 @@ export const pdfToImageManifest: ToolManifest = {
   offlineSupport: true,
 };
 
-function parsePageSelection(rangesStr: string, totalPages: number): number[] {
-  if (!rangesStr.trim()) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
-  const pages = new Set<number>();
-  const parts = rangesStr.split(',');
-
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed.includes('-')) {
-      const [startStr, endStr] = trimmed.split('-');
-      const start = parseInt(startStr.trim(), 10);
-      const end = parseInt(endStr.trim(), 10);
-      if (!isNaN(start) && !isNaN(end)) {
-        for (let i = Math.max(1, start); i <= Math.min(totalPages, end); i++) {
-          pages.add(i);
-        }
-      }
-    } else {
-      const num = parseInt(trimmed, 10);
-      if (!isNaN(num) && num >= 1 && num <= totalPages) {
-        pages.add(num);
-      }
-    }
-  }
-
-  const result = Array.from(pages).sort((a, b) => a - b);
-  return result.length > 0 ? result : Array.from({ length: totalPages }, (_, i) => i + 1);
-}
-
 export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
   manifest: pdfToImageManifest,
   defaultOptions: {
     format: 'png',
     scale: 2.0,
-    pageRanges: '',
   },
 
   validateFiles: (files: File[]) => {
@@ -93,7 +63,7 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
     return { valid: true };
   },
 
-  OptionsComponent: PdfToImageOptionsComponent,
+  // OptionsComponent is intentionally omitted to give users high-quality PNG conversion directly without configuration friction
 
   process: async ({
     files,
@@ -128,26 +98,26 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
     const pdfDoc = await loadingTask.promise;
     const totalPages = pdfDoc.numPages;
 
-    const targetPages = parsePageSelection(options.pageRanges, totalPages);
-    const mimeType = options.format === 'png' ? 'image/png' : 'image/jpeg';
-    const ext = options.format === 'png' ? 'png' : 'jpg';
+    // High quality: 2.0x scale (150-200 DPI) for crystal-clear text and graphics
+    const scale = Math.max(options?.scale || 2.0, 2.0);
+    const mimeType = 'image/png';
+    const ext = 'png';
 
     const renderedImages: { name: string; blob: Blob }[] = [];
 
-    for (let i = 0; i < targetPages.length; i++) {
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
       if (signal?.aborted) {
         throw new Error('Conversion cancelled by user.');
       }
 
-      const pageNum = targetPages[i];
-      const percent = Math.round(25 + ((i + 1) / targetPages.length) * 65);
+      const percent = Math.round(25 + (pageNum / totalPages) * 65);
       onProgress({
         progress: percent,
-        statusText: `Rendering page ${pageNum} of ${totalPages}...`,
+        statusText: `Rendering page ${pageNum} of ${totalPages} in high quality...`,
       });
 
       const page = await pdfDoc.getPage(pageNum);
-      const viewport = page.getViewport({ scale: options.scale });
+      const viewport = page.getViewport({ scale });
 
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
@@ -158,12 +128,6 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
         throw new Error('Unable to initialize HTML5 Canvas rendering context.');
       }
 
-      // Render white background for JPEG
-      if (options.format === 'jpeg') {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
       const renderContext = {
         canvasContext: ctx,
         viewport,
@@ -172,11 +136,11 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
       await page.render(renderContext).promise;
 
       const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob((b) => resolve(b), mimeType, options.format === 'jpeg' ? 0.92 : undefined);
+        canvas.toBlob((b) => resolve(b), mimeType);
       });
 
       if (!blob) {
-        throw new Error(`Failed to generate image blob for page ${pageNum}.`);
+        throw new Error(`Failed to generate high quality image blob for page ${pageNum}.`);
       }
 
       const baseName = file.name.replace(/\.[^/.]+$/, '');
@@ -188,7 +152,7 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
 
     onProgress({ progress: 95, statusText: 'Packaging output...' });
 
-    // If only 1 image rendered, return that image directly
+    // If only 1 image rendered, return that high quality image directly
     if (renderedImages.length === 1) {
       const single = renderedImages[0];
       onProgress({ progress: 100, statusText: 'Complete!' });
@@ -210,7 +174,7 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
       type: 'blob',
       mimeType: 'application/zip',
     });
-    const zipName = `toolino-images-${dateStamp}.zip`;
+    const zipName = `toolino-high-quality-images-${dateStamp}.zip`;
 
     onProgress({ progress: 100, statusText: 'Export complete!' });
 
@@ -222,4 +186,3 @@ export const pdfToImageTool: IToolDefinition<PdfToImageOptions> = {
     };
   },
 };
-
