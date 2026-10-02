@@ -22,6 +22,7 @@ import { PdfSummarizer } from '@/components/tools/PdfSummarizer';
 import { GstCalculator } from '@/components/tools/GstCalculator';
 import { MergePdfConverter } from '@/components/tools/MergePdfConverter';
 import { SplitPdfConverter } from '@/components/tools/SplitPdfConverter';
+import { RotatePdfConverter } from '@/components/tools/RotatePdfConverter';
 import { trackToolEvent } from '@/lib/analytics/tracker';
 import '@/tools'; // Ensures tools are registered in client bundle
 
@@ -35,6 +36,10 @@ export function ToolRunner({ toolId }: ToolRunnerProps) {
       trackToolEvent(toolId, 'tool_opened');
     }
   }, [toolId]);
+
+  if (toolId === 'rotate-pdf') {
+    return <RotatePdfConverter />;
+  }
 
   if (toolId === 'split-pdf') {
     return <SplitPdfConverter />;

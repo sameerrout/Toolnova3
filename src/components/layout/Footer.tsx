@@ -7,14 +7,16 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf, pdf-to-image)
+  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf, pdf-to-image, rotate-pdf)
   if (
     pathname?.includes('image-to-pdf') ||
     pathname?.includes('merge-pdf') ||
     pathname?.includes('pdf-merger') ||
     pathname?.includes('split-pdf') ||
     pathname?.includes('pdf-splitter') ||
-    pathname?.includes('pdf-to-image')
+    pathname?.includes('pdf-to-image') ||
+    pathname?.includes('rotate-pdf') ||
+    pathname?.includes('pdf-rotator')
   ) {
     return null;
   }
