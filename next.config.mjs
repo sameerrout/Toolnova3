@@ -63,6 +63,8 @@ const nextConfig = {
         { source: '/rotate-pdf', destination: '/tools/rotate-pdf' },
         { source: '/watermark-pdf', destination: '/tools/watermark-pdf' },
         { source: '/pdf-page-numbers', destination: '/tools/pdf-page-numbers' },
+        { source: '/pdf-organizer', destination: '/tools/organize-pdf' },
+        { source: '/organize-pdf', destination: '/tools/organize-pdf' },
     ],
 };
 

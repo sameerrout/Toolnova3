@@ -25,6 +25,7 @@ import { SplitPdfConverter } from '@/components/tools/SplitPdfConverter';
 import { RotatePdfConverter } from '@/components/tools/RotatePdfConverter';
 import { WatermarkPdfConverter } from '@/components/tools/WatermarkPdfConverter';
 import { PdfPageNumbersConverter } from '@/components/tools/PdfPageNumbersConverter';
+import { OrganizePdfConverter } from '@/components/tools/OrganizePdfConverter';
 import { trackToolEvent } from '@/lib/analytics/tracker';
 import '@/tools'; // Ensures tools are registered in client bundle
 
@@ -38,6 +39,10 @@ export function ToolRunner({ toolId }: ToolRunnerProps) {
       trackToolEvent(toolId, 'tool_opened');
     }
   }, [toolId]);
+
+  if (toolId === 'organize-pdf' || toolId === 'pdf-organizer') {
+    return <OrganizePdfConverter />;
+  }
 
   if (toolId === 'pdf-page-numbers') {
     return <PdfPageNumbersConverter />;
