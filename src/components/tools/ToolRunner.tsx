@@ -21,6 +21,7 @@ import { DiscountCalculator } from '@/components/tools/DiscountCalculator';
 import { PdfSummarizer } from '@/components/tools/PdfSummarizer';
 import { GstCalculator } from '@/components/tools/GstCalculator';
 import { MergePdfConverter } from '@/components/tools/MergePdfConverter';
+import { SplitPdfConverter } from '@/components/tools/SplitPdfConverter';
 import { trackToolEvent } from '@/lib/analytics/tracker';
 import '@/tools'; // Ensures tools are registered in client bundle
 
@@ -34,6 +35,10 @@ export function ToolRunner({ toolId }: ToolRunnerProps) {
       trackToolEvent(toolId, 'tool_opened');
     }
   }, [toolId]);
+
+  if (toolId === 'split-pdf') {
+    return <SplitPdfConverter />;
+  }
 
   if (toolId === 'merge-pdf') {
     return <MergePdfConverter />;

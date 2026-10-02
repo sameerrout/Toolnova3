@@ -7,11 +7,13 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide footer on image-to-pdf and merge-pdf pages as requested
+  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf)
   if (
     pathname?.includes('image-to-pdf') ||
     pathname?.includes('merge-pdf') ||
-    pathname?.includes('pdf-merger')
+    pathname?.includes('pdf-merger') ||
+    pathname?.includes('split-pdf') ||
+    pathname?.includes('pdf-splitter')
   ) {
     return null;
   }

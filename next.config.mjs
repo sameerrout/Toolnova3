@@ -58,6 +58,7 @@ const nextConfig = {
         { source: '/pdf-merger', destination: '/tools/merge-pdf' },
         { source: '/merge-pdf', destination: '/tools/merge-pdf' },
         { source: '/pdf-splitter', destination: '/tools/split-pdf' },
+        { source: '/split-pdf', destination: '/tools/split-pdf' },
     ],
 };
 
