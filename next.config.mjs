@@ -71,6 +71,8 @@ const nextConfig = {
         { source: '/organize-pdf', destination: '/tools/organize-pdf' },
         { source: '/resize-image', destination: '/image-resizer' },
         { source: '/image-resize', destination: '/image-resizer' },
+        { source: '/pdf-editor', destination: '/edit-pdf' },
+        { source: '/editor-pdf', destination: '/edit-pdf' },
     ],
 };
 

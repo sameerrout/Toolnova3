@@ -11,42 +11,36 @@ const rootDir = path.resolve(__dirname, '..');
 console.log('🧪 Running Toolino PDF Editor Simplified (Add Text & Add Image) Verification Suite...\n');
 
 // =========================================================================
-// TEST 1: Left Toolbar Final Tools: ONLY Add Text and Add Image
+// TEST 1: Top Toolbar Final Tools: ONLY Add Text and Add Image, Zero Sidebars
 // =========================================================================
-console.log('Test 1: Left Toolbar Final Tools Verification (ONLY Add Text & Add Image)...');
+console.log('Test 1: Top Toolbar Tools Verification (ONLY Add Text & Add Image, Zero Sidebars)...');
 const pdfEditorPath = path.join(rootDir, 'src', 'components', 'tools', 'pdf-editor', 'PdfEditor.tsx');
 const pdfEditorContent = fs.readFileSync(pdfEditorPath, 'utf8');
 
-const sidebarSectionMatch = pdfEditorContent.match(/LEFT TOOLBAR[\s\S]*?<\/aside>/);
-assert(sidebarSectionMatch, 'Left toolbar aside element must exist');
-const sidebarCode = sidebarSectionMatch[0];
+// Check strictly NO sidebars
+assert(!pdfEditorContent.includes('<aside'), 'Must not contain any <aside> sidebar element');
+console.log('  ✓ Strictly no sidebars (neither left nor right) in PdfEditor.tsx');
 
-// Check that Add Text and Add Image buttons exist in sidebar
-assert(sidebarCode.includes('Add Text'), 'Left toolbar must contain "Add Text"');
-assert(sidebarCode.includes('Add Image'), 'Left toolbar must contain "Add Image"');
+// Check that Add Text and Add Image buttons exist in editor
+assert(pdfEditorContent.includes('Add Text'), 'Editor must contain "Add Text"');
+assert(pdfEditorContent.includes('Add Image'), 'Editor must contain "Add Image"');
 
-// Check that NO OTHER editing tools appear in the sidebar
-const forbiddenInSidebar = [
-  'Highlight',
-  'Draw',
-  'Forms',
-  'Page Setup',
-  'Watermark',
-  'Header & Footer',
-  'Page Numbers',
-  'Rotate',
-  'Crop',
-  'Split',
-  'Merge',
-  'Protect',
+// Check that NO unsupported editing tools appear
+const forbiddenTools = [
+  'activeModal === \'forms\'',
+  'activeModal === \'page-setup\'',
+  'activeModal === \'watermark\'',
+  'activeModal === \'header-footer\'',
+  'activeModal === \'split\'',
+  'activeModal === \'protect\'',
 ];
 
-for (const tool of forbiddenInSidebar) {
-  assert(!sidebarCode.includes(tool), `Left toolbar must NOT contain '${tool}'`);
+for (const tool of forbiddenTools) {
+  assert(!pdfEditorContent.includes(tool), `Editor must NOT contain '${tool}'`);
 }
 
-console.log('  ✓ Left sidebar contains ONLY "Add Text" and "Add Image"');
-console.log('  ✓ All 12 removed tools are completely absent from the sidebar');
+console.log('  ✓ Editor contains ONLY working "Add Text" and "Add Image"');
+console.log('  ✓ All unsupported modals/tools are completely absent');
 
 // =========================================================================
 // TEST 2: Verify Removed Tools Are Absent from Menus and Dialogs
