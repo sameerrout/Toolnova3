@@ -69,6 +69,8 @@ const nextConfig = {
         { source: '/pdf-page-numbers', destination: '/tools/pdf-page-numbers' },
         { source: '/pdf-organizer', destination: '/tools/organize-pdf' },
         { source: '/organize-pdf', destination: '/tools/organize-pdf' },
+        { source: '/resize-image', destination: '/image-resizer' },
+        { source: '/image-resize', destination: '/image-resizer' },
     ],
 };
 

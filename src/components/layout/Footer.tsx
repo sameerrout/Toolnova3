@@ -25,7 +25,9 @@ export function Footer() {
     pathname?.includes('pdf-compressor') ||
     pathname?.includes('qr-code-generator') ||
     pathname?.includes('qr-generator') ||
-    pathname?.includes('image-compressor')
+    pathname?.includes('image-compressor') ||
+    pathname?.includes('image-resizer') ||
+    pathname?.includes('resize-image')
   ) {
     return null;
   }
