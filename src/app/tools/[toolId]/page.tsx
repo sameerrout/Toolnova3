@@ -149,7 +149,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
       />
 
       {/* Educational sections are completely omitted across tools to keep clean, focused application UI:
-          toolId !== 'split-pdf' && toolId !== 'rotate-pdf' && toolId !== 'watermark-pdf' && toolId !== 'pdf-page-numbers' && toolId !== 'organize-pdf' && toolId !== 'compress-pdf' */}
+          toolId !== 'split-pdf' && toolId !== 'rotate-pdf' && toolId !== 'watermark-pdf' && toolId !== 'pdf-page-numbers' && toolId !== 'organize-pdf' && toolId !== 'compress-pdf' && toolId !== 'qr-code-generator' && toolId !== 'background-remover' && toolId !== 'image-to-text' && toolId !== 'image-converter' && toolId !== 'protect-pdf' && toolId !== 'pdf-to-image' && toolId !== 'pdf-to-powerpoint' */}
       <ToolRunner toolId={toolId} />
     </>
   );
