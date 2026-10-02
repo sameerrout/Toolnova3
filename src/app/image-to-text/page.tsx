@@ -66,45 +66,6 @@ export default function ImageToTextPage() {
     ],
   };
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Are my confidential documents or images uploaded to any server?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. All optical character recognition is performed 100% client-side inside your browser sandbox using WebAssembly. Your images, personal documents, and financial receipts never leave your computer or phone.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Which languages does Toolino OCR support?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Toolino supports over 16 major languages including English, Spanish, French, German, Italian, Portuguese, Hindi, Chinese (Simplified & Traditional), Japanese, Korean, Russian, Arabic, Dutch, Polish, and Turkish.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I export the extracted text directly to Microsoft Word or PDF?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes! You can copy text to your clipboard with one click, or export directly to clean formatted Microsoft Word (.docx), searchable PDF (.pdf), or plain text (.txt) files.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How can I improve OCR accuracy on low-quality or blurry scans?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Click on "Scan Enhancement Filters" and enable "Enhance Text Contrast" or "Binarize". This converts low-contrast gray backgrounds into sharp black-on-white text for maximum recognition accuracy.',
-        },
-      },
-    ],
-  };
-
   return (
     <>
       {/* Structured Data Script Tags */}
@@ -115,10 +76,6 @@ export default function ImageToTextPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       {/* Main Tool Application */}

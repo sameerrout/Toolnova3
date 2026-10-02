@@ -66,45 +66,6 @@ export default function PassportPhotoMakerPage() {
     ],
   };
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'What are the dimensions for US Passport and Visa photos?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'US Passport and Visa photos must measure exactly 2×2 inches (51×51 mm) at 300 DPI (600×600 pixels). The head must be between 1 inch and 1 3/8 inches (50% to 69% of the image height).',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What are the dimensions for UK, European Schengen, and India passport photos?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'The standard biometric specification for UK HMPO, European Schengen Visas, and Indian Passport Seva is 35×45 mm (width × height). The face height must occupy between 70% and 80% of the photograph.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How do I print passport photos on a home printer or pharmacy kiosk?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Download the 4×6 inch (10×15 cm) Print Sheet option. It tiles 6 to 8 compliant passport photos with cutting guide lines onto standard 4R photo paper. Print it at standard 100% scale (no fit-to-page) at CVS, Walgreens, Walmart, or any photo printer for pennies.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Are my personal portrait photos stored or uploaded to any server?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. Toolino operates 100% locally in your web browser. Your photo is rendered in your device memory and never transmitted over the internet.',
-        },
-      },
-    ],
-  };
-
   return (
     <>
       {/* Structured Data Script Tags */}
@@ -115,10 +76,6 @@ export default function PassportPhotoMakerPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       {/* Main Tool Application */}

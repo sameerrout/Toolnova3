@@ -66,45 +66,6 @@ export default function ImageConverterPage() {
     ],
   };
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Which image formats can I convert between?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'You can convert images between JPG/JPEG, PNG, WEBP, AVIF, BMP, and ICO formats. Inputs include JPG, PNG, WEBP, AVIF, BMP, GIF, SVG, TIFF, and ICO.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Does converting PNG to WEBP keep the transparent background?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes! WEBP fully supports alpha transparency, and Toolino preserves transparency completely during conversion.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Are my images uploaded to any remote server?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. Conversions occur 100% locally on your computer or smartphone using HTML5 Canvas and browser Web APIs. Your images are never sent to external servers.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I convert multiple images at once and download as a ZIP file?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes, you can queue dozens of images, set custom formats or a global target format, batch process them in parallel, and download everything as a single ZIP archive.',
-        },
-      },
-    ],
-  };
-
   return (
     <>
       {/* Structured Data Script Tags */}
@@ -115,10 +76,6 @@ export default function ImageConverterPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       {/* Main Tool Application */}

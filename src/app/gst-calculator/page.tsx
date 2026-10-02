@@ -47,7 +47,7 @@ export default function GstCalculatorPage() {
       priceCurrency: 'INR',
     },
     description:
-      'Online Goods and Services Tax (GST) calculator for Indian commerce supporting GST-inclusive and GST-exclusive pricing with automatic CGST, SGST, and IGST breakdowns.',
+      'Free online GST calculator for India. Add or remove GST with 5%, 12%, 18%, and 28% tax slabs, including CGST, SGST, and IGST breakdowns.',
   };
 
   const breadcrumbSchema = {
@@ -75,45 +75,6 @@ export default function GstCalculatorPage() {
     ],
   };
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'What is the formula to Add GST to a net base price?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'To add GST (exclusive mode): GST Amount = Base Amount × (GST Rate ÷ 100). The total invoice amount is Base Amount + GST Amount. For example, on ₹10,000 at 18% GST, GST is ₹1,800 and total is ₹11,800.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What is the formula to Remove GST from a gross price?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'To remove GST (inclusive mode): Base Amount = Gross Amount ÷ (1 + (GST Rate ÷ 100)). The GST portion is Gross Amount - Base Amount. For example, on a ₹11,800 total at 18% GST, base is ₹11,800 ÷ 1.18 = ₹10,000, and GST is ₹1,800.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What is the difference between CGST, SGST, and IGST?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'For intra-state transactions (buyer and seller in the same state), GST is split equally between the Central Government (CGST) and State Government (SGST). For inter-state transactions (across state borders), Integrated GST (IGST) is levied in full.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What are the current standard GST rate slabs in India?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'The primary GST tax slabs are 0% (essential food grains), 3% (gold and precious jewelry), 5% (household essentials and economy flights), 12% (processed foods and electronics), 18% (most IT services, restaurants, and telecom), and 28% (luxury vehicles and sin goods).',
-        },
-      },
-    ],
-  };
-
   return (
     <>
       <script
@@ -123,10 +84,6 @@ export default function GstCalculatorPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <GstCalculator />

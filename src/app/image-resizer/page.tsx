@@ -1,18 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import Link from 'next/link';
-import {
-  HelpCircle,
-  Sparkles,
-  ShieldCheck,
-  Zap,
-  ArrowRight,
-  Maximize2,
-  Sliders,
-  Layers,
-} from 'lucide-react';
 import { ImageResizer } from '@/components/tools/ImageResizer';
-import { Container } from '@/components/common/Container';
 
 export const metadata: Metadata = {
   title: 'Free Image Resizer Online - Resize Photos in Pixels & Ratio | Toolino',
@@ -78,42 +66,6 @@ export default function ImageResizerPage() {
     ],
   };
 
-  const faqs = [
-    {
-      q: 'How do I lock or unlock the aspect ratio?',
-      a: 'Click the padlock icon between the width and height inputs. When locked, changing the width automatically updates the height proportionally to prevent image stretching or distortion.',
-    },
-    {
-      q: 'What presets are available?',
-      a: 'We provide presets for Instagram (Square 1080×1080, Story 1080×1920, Portrait 1080×1350), YouTube (Thumbnail 1280×720, Banner 2560×1440), LinkedIn, WhatsApp, Full HD (1920×1080), and standard square icons (100×100 to 500×500).',
-    },
-    {
-      q: 'Will resizing my image reduce its quality?',
-      a: 'Downscaling an image to smaller dimensions preserves crisp details and reduces file size. If you upscale an image larger than its original resolution, Toolino will display an "Upscaled" warning so you are aware of potential softening.',
-    },
-    {
-      q: 'Can I resize multiple images at once?',
-      a: 'Yes. You can upload multiple images simultaneously, apply common dimensions or percentage scaling across all photos, and download them individually or as a single ZIP file.',
-    },
-    {
-      q: 'Are my images uploaded to any server?',
-      a: 'No. Resizing is performed 100% client-side inside your browser sandbox using hardware-accelerated Canvas. Your files remain completely private on your local device.',
-    },
-  ];
-
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqs.map((faq) => ({
-      '@type': 'Question',
-      name: faq.q,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.a,
-      },
-    })),
-  };
-
   return (
     <>
       {/* Schema.org Injections */}
@@ -124,10 +76,6 @@ export default function ImageResizerPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       {/* Main Interactive Tool Component */}

@@ -46,7 +46,7 @@ export default function DiscountCalculatorPage() {
       priceCurrency: 'USD',
     },
     description:
-      'Comprehensive multi-mode discount calculator supporting percentage markdown, sequential stacked sales deals, reverse tag pricing, and regional sales tax.',
+      'Fast client-side discount calculator for single and stacked discounts, sales tax, and reverse original prices.',
   };
 
   const breadcrumbSchema = {
@@ -62,7 +62,7 @@ export default function DiscountCalculatorPage() {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Utility & Shopping Tools',
+        name: 'Tools',
         item: `${baseUrl}/utility-tools`,
       },
       {
@@ -70,45 +70,6 @@ export default function DiscountCalculatorPage() {
         position: 3,
         name: 'Discount Calculator',
         item: pageUrl,
-      },
-    ],
-  };
-
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'How do you calculate a discount percentage?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'To calculate discount amount, multiply original price by discount percentage and divide by 100. Then subtract this discount amount from the original price to determine your final checkout total.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How do stacked discounts (e.g. 20% off plus extra 10% off) work?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Stacked discounts are applied sequentially, not added together. For example, on a ₹1,000 item, the first 20% discount lowers the price to ₹800. The second 10% discount is taken off ₹800 (giving ₹80 off), resulting in a final price of ₹720. That is an effective 28% total discount, not 30%.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What is a reverse discount calculation?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Reverse discount calculates what an item originally cost before a sale was applied. Formula: Original Price = Sale Price ÷ (1 - (Discount ÷ 100)). For example, if you paid ₹800 after a 20% discount, the original price was ₹800 ÷ 0.80 = ₹1,000.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can sales tax be included in the calculation?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes! In standard mode, enter your local sales tax rate to automatically see the post-discount taxable amount and final out-the-door checkout sum.',
-        },
       },
     ],
   };
@@ -122,10 +83,6 @@ export default function DiscountCalculatorPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <DiscountCalculator />

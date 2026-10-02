@@ -1,19 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import Link from 'next/link';
-import {
-  HelpCircle,
-  Sparkles,
-  ShieldCheck,
-  Zap,
-  ArrowRight,
-  Palette,
-  Sliders,
-  Scissors,
-  CheckCircle2,
-} from 'lucide-react';
 import { BackgroundRemover } from '@/components/tools/BackgroundRemover';
-import { Container } from '@/components/common/Container';
 
 export const metadata: Metadata = {
   title: 'Free Background Remover Online - Remove BG in 1-Click | Toolino',
@@ -79,45 +66,6 @@ export default function BackgroundRemoverPage() {
     ],
   };
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Are my photos uploaded to any external server?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. All image segmentation and background removal processes occur 100% locally within your web browser using HTML5 Canvas and offscreen matting algorithms. Your photos never leave your device.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I replace the background with a custom color or gradient?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes! You can choose between transparent PNG cutouts, solid colors (including passport blue, studio white, or custom hex codes), and modern studio gradients.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How do I remove halos or fringes around hair and clothing edges?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Use the Halo Removal slider (edge shift) to contract the mask by 1 to 3 pixels, and adjust the Edge Feathering slider to smoothly blend borders without pixelation.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What if certain background areas are not removed automatically?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Use the Eyedropper tool to click on the leftover color, adjust the Color Tolerance slider, or use the interactive Erase brush to manually touch up any region.',
-        },
-      },
-    ],
-  };
-
   return (
     <>
       {/* Structured Data Script Tags */}
@@ -128,10 +76,6 @@ export default function BackgroundRemoverPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       {/* Main Tool Application */}

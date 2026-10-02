@@ -78,34 +78,34 @@ export default function PercentageCalculatorPage() {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'How do you calculate percentage increase or decrease?',
+        name: 'What is the formula to calculate percentage increase?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Percentage change is calculated using the formula: ((New Value - Original Value) ÷ Original Value) × 100. If the result is positive, it represents an increase; if negative, it is a decrease.',
+          text: 'Percentage Increase = ((New Value - Old Value) / |Old Value|) × 100%.',
         },
       },
       {
         '@type': 'Question',
-        name: 'What is the difference between Profit Margin and Markup?',
+        name: 'What is the difference between margin and markup?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Profit Margin is the percentage of selling price that is profit: (Profit ÷ Selling Price) × 100. Markup is the percentage added on top of the cost: (Profit ÷ Cost) × 100. For example, an item costing $50 and selling for $100 has a 50% margin and a 100% markup.',
+          text: 'Gross Margin is profit as a percentage of revenue: ((Revenue - Cost) / Revenue) × 100%. Markup is profit as a percentage of original cost: ((Price - Cost) / Cost) × 100%.',
         },
       },
       {
         '@type': 'Question',
-        name: 'How does the Discount and Sales Tax mode work?',
+        name: 'How do I calculate double discounts during sales?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'First, the discount amount is deducted from the original price to determine the pre-tax price. Then, sales tax is applied to the discounted price to determine the final checkout total.',
+          text: 'Consecutive discounts are applied sequentially, not added together. Toolino calculates sequential compounding accurately.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Can this tool split dining bills and tips evenly?',
+        name: 'Is my calculation data saved or transmitted?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes! Enter your bill amount, select your desired tip percentage (e.g. 15%, 18%, 20%), and set how many people are splitting the bill to see exact tip and total owed per person.',
+          text: 'No. All calculations occur locally in your web browser. No financial numbers or inputs are transmitted.',
         },
       },
     ],

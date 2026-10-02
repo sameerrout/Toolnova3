@@ -66,45 +66,6 @@ export default function JsonFormatterPage() {
     ],
   };
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Can this tool fix invalid JSON with trailing commas or unquoted keys?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes! The "Fix JSON Syntax" button automatically detects and repairs single quotes, unquoted property keys, trailing commas in objects and arrays, Python constants (True/False/None), and JavaScript comments.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'How do I convert JSON into CSV, XML, or YAML?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Paste or upload your JSON document, then switch to the CSV, XML, or YAML tab. Toolino converts arrays and nested structures instantly and provides 1-click download buttons for each format.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Are my JSON API payloads or database credentials sent to any server?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'No. Toolino operates 100% locally inside your web browser. Your private JSON payloads, API responses, and configuration files are never sent over the internet.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What indentation options are supported for formatting?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'You can choose between 2 spaces, 4 spaces, tab indentation, or minified/compact mode with zero whitespace for production web payloads.',
-        },
-      },
-    ],
-  };
-
   return (
     <>
       {/* Structured Data Script Tags */}
@@ -115,10 +76,6 @@ export default function JsonFormatterPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       {/* Main Tool Application */}

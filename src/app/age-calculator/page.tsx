@@ -78,34 +78,34 @@ export default function AgeCalculatorPage() {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'How is chronological age calculated precisely?',
+        name: 'How does leap year affect age calculations?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Chronological age is calculated by finding the exact difference between your date of birth and the target date (or current moment). The calculation takes into account varying days per month (28, 29, 30, or 31) and leap years, ensuring that month and day counts match standard legal definitions.',
+          text: 'Toolino uses real Gregorian calendar rules. Leap years (with 366 days and Feb 29) are fully factored into day counts and date differences.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Can I calculate what my age will be on a future date?',
+        name: 'What is the difference between chronological age and gestational age?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes! Simply change the "Calculate Age On" field to any future date (such as a retirement date, college graduation, or milestone anniversary) to see your exact age on that day.',
+          text: 'Chronological age begins at birth. Gestational age starts from the first day of the mother’s last menstrual period.',
         },
       },
       {
         '@type': 'Question',
-        name: 'What is the Date Difference Calculator mode?',
+        name: 'How are heartbeats and breaths estimated?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'The Date Difference tab allows you to calculate the duration between any two arbitrary dates. It provides total calendar days, business/working days (Monday through Friday), weekend days, and weeks.',
+          text: 'Lifetime estimates are calculated based on standard biological averages: ~80 resting beats per minute for heart rate and ~16 breaths per minute for respiratory rate over your total days lived.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Is my birth date stored or transmitted anywhere?',
+        name: 'Are my personal dates private?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'No. All calculations are executed 100% locally in your web browser. No dates or personal metrics are ever sent to a server or recorded in any database.',
+          text: '100% private. All processing occurs locally within your browser’s JavaScript engine. No dates, times, or personal profiles are transmitted to any server.',
         },
       },
     ],

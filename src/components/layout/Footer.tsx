@@ -7,14 +7,14 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf, pdf-to-image, rotate-pdf, watermark-pdf, pdf-page-numbers, organize-pdf, compress-pdf, qr-code-generator, image-compressor)
-  if (
+  // Hide footer on all tool pages
+  const isToolPage =
+    pathname?.startsWith('/tools/') ||
     pathname?.includes('image-to-pdf') ||
     pathname?.includes('merge-pdf') ||
     pathname?.includes('pdf-merger') ||
     pathname?.includes('split-pdf') ||
     pathname?.includes('pdf-splitter') ||
-    pathname?.includes('pdf-to-image') ||
     pathname?.includes('rotate-pdf') ||
     pathname?.includes('pdf-rotator') ||
     pathname?.includes('watermark-pdf') ||
@@ -23,6 +23,7 @@ export function Footer() {
     pathname?.includes('pdf-organizer') ||
     pathname?.includes('compress-pdf') ||
     pathname?.includes('pdf-compressor') ||
+    pathname?.includes('pdf-to-image') ||
     pathname?.includes('qr-code-generator') ||
     pathname?.includes('qr-generator') ||
     pathname?.includes('image-compressor') ||
@@ -48,14 +49,16 @@ export function Footer() {
     pathname?.includes('percentage-calculator') ||
     pathname?.includes('emi-calculator') ||
     pathname?.includes('discount-calculator') ||
-    pathname?.includes('gst-calculator')
-  ) {
+    pathname?.includes('gst-calculator') ||
+    pathname?.includes('pdf-summarizer');
+
+  if (isToolPage) {
     return null;
   }
 
   return (
     <footer className="bg-blue-900 text-white py-12 border-t border-blue-800">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-sm">
         {/* Implemented Tools Column 1 */}
         <div className="space-y-2">
           <h3 className="font-bold mb-4 text-white text-base">PDF Creation &amp; Edit</h3>
@@ -163,23 +166,11 @@ export function Footer() {
             All Tools Catalog
           </Link>
         </div>
-
-        {/* Privacy & Security */}
-        <div className="space-y-3 col-span-2 md:col-span-1">
-          <h3 className="font-bold text-white text-base">Privacy &amp; Security</h3>
-          <p className="text-xs text-blue-200 leading-relaxed">
-            Choose from browser-based tools and server-powered conversions. Toolino selects the appropriate processing method for each tool. Server-assisted jobs use isolated temporary sandboxes with automated cleanup.
-          </p>
-          <div className="inline-block rounded-md bg-blue-800/90 border border-blue-700 px-3 py-1 text-xs text-emerald-300 font-semibold">
-            🛡️ Ephemeral &amp; In-Browser Security
-          </div>
-        </div>
       </div>
 
       {/* Bottom */}
-      <div className="max-w-7xl mx-auto px-6 mt-10 pt-6 border-t border-blue-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-blue-300 gap-3">
+      <div className="max-w-7xl mx-auto px-6 mt-10 pt-6 border-t border-blue-800/80 flex items-center justify-between text-xs text-blue-300">
         <p>© 2026 Toolino. All rights reserved.</p>
-        <p className="text-blue-400">Created by Sameer Rout &amp; Sampangi Sony</p>
       </div>
     </footer>
   );
