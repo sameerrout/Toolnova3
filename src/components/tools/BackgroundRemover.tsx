@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import {
   UploadCloud,
@@ -24,6 +24,10 @@ import {
   Palette,
   Split,
   Image as ImageIcon,
+  RotateCcw,
+  Trash2,
+  MousePointer,
+  Brush,
 } from 'lucide-react';
 import {
   removeBackground,
@@ -32,6 +36,7 @@ import {
   COLOR_PRESETS,
   GRADIENT_PRESETS,
 } from '@/core/engine/backgroundRemoverEngine';
+import { trackToolEvent } from '@/lib/analytics/tracker';
 
 interface SampleImage {
   name: string;
@@ -60,7 +65,7 @@ const SAMPLE_IMAGES: SampleImage[] = [
 export function BackgroundRemover() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [originalFile, setOriginalFile] = useState<File | null>(null);
-  const [originalMeta, setOriginalMeta] = useState<{ width: number; height: number; size: number } | null>(null);
+  const [originalMeta, setOriginalMeta] = useState<{ width: number; height: number; size: number; name: string } | null>(null);
 
   // Status
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -90,11 +95,45 @@ export function BackgroundRemover() {
   const [activeTool, setActiveTool] = useState<'pointer' | 'eyedropper' | 'erase' | 'restore'>('pointer');
   const [brushSize, setBrushSize] = useState<number>(24);
 
+  // Drag over state
+  const [isDragOver, setIsDragOver] = useState<boolean>(false);
+
   // Refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const touchCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const isPaintingRef = useRef<boolean>(false);
+
+  // Desktop single-screen overflow lock
+  useEffect(() => {
+    const applyOverflow = () => {
+      if (window.innerWidth >= 1024) {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      }
+    };
+
+    applyOverflow();
+    window.addEventListener('resize', applyOverflow);
+
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      window.removeEventListener('resize', applyOverflow);
+    };
+  }, []);
+
+  // Format bytes helper
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  };
 
   // Handle image upload
   const handleFile = useCallback((file: File) => {
@@ -110,6 +149,8 @@ export function BackgroundRemover() {
 
     setErrorMessage(null);
     setOriginalFile(file);
+    setKeyColor(null);
+    maskHistoryRef.current = [];
 
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -118,20 +159,31 @@ export function BackgroundRemover() {
         width: img.naturalWidth,
         height: img.naturalHeight,
         size: file.size,
+        name: file.name,
       });
-      setSelectedImage(url);
-      setKeyColor(null);
-      maskHistoryRef.current = [];
+      setSelectedImage((prev) => {
+        if (prev && prev.startsWith('blob:')) {
+          URL.revokeObjectURL(prev);
+        }
+        return url;
+      });
+      trackToolEvent('background-remover', 'tool_opened');
     };
     img.onerror = () => {
-      setErrorMessage('Failed to decode image.');
+      URL.revokeObjectURL(url);
+      setErrorMessage('Unable to load or parse image. Please try another file.');
     };
     img.src = url;
   }, []);
 
   const handleSampleLoad = useCallback(async (sample: SampleImage) => {
     setErrorMessage(null);
-    setSelectedImage(sample.url);
+    setSelectedImage((prev) => {
+      if (prev && prev.startsWith('blob:')) {
+        URL.revokeObjectURL(prev);
+      }
+      return sample.url;
+    });
     setOriginalFile(null);
     setKeyColor(null);
     maskHistoryRef.current = [];
@@ -142,7 +194,9 @@ export function BackgroundRemover() {
         width: img.naturalWidth || 600,
         height: img.naturalHeight || 600,
         size: 45000,
+        name: `${sample.name.toLowerCase().replace(/\s+/g, '_')}.png`,
       });
+      trackToolEvent('background-remover', 'tool_opened');
     };
     img.src = sample.url;
   }, []);
@@ -179,9 +233,9 @@ export function BackgroundRemover() {
         );
 
         setResult(res);
-      } catch (err: any) {
-        console.error(err);
-        setErrorMessage(err?.message || 'Failed to remove background.');
+      } catch (err: unknown) {
+        console.error('Background removal error:', err);
+        setErrorMessage('Unable to remove the background. Please try another image or adjust fine-tuning.');
       } finally {
         setIsProcessing(false);
       }
@@ -204,8 +258,8 @@ export function BackgroundRemover() {
     if (activeTool !== 'eyedropper' || !containerRef.current || !selectedImage) return;
 
     const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width);
-    const y = ((e.clientY - rect.top) / rect.height);
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -241,7 +295,6 @@ export function BackgroundRemover() {
   const handleTouchUp = () => {
     if (isPaintingRef.current && result) {
       isPaintingRef.current = false;
-      // Save mask state to history for undo
       const clone = document.createElement('canvas');
       clone.width = result.maskCanvas.width;
       clone.height = result.maskCanvas.height;
@@ -249,7 +302,6 @@ export function BackgroundRemover() {
       if (cctx) cctx.drawImage(result.maskCanvas, 0, 0);
       maskHistoryRef.current.push(clone);
 
-      // Re-render composite using updated mask
       runRemoval(result.maskCanvas);
     }
     isPaintingRef.current = false;
@@ -285,58 +337,74 @@ export function BackgroundRemover() {
   };
 
   const handleUndo = () => {
-    if (maskHistoryRef.current.length > 0) {
-      maskHistoryRef.current.pop();
-      const prev = maskHistoryRef.current[maskHistoryRef.current.length - 1] || null;
-      runRemoval(prev);
-    }
+    if (maskHistoryRef.current.length === 0) return;
+    maskHistoryRef.current.pop();
+    const prevMask = maskHistoryRef.current.length > 0 ? maskHistoryRef.current[maskHistoryRef.current.length - 1] : null;
+    runRemoval(prevMask);
   };
 
-  // Download handling
+  // Reset to default sliders
+  const handleResetFineTuning = () => {
+    setTolerance(24);
+    setFeather(2);
+    setEdgeShift(-1);
+    setDespill(true);
+    setKeyColor(null);
+  };
+
+  // Reset all
+  const handleStartOver = () => {
+    setSelectedImage((prev) => {
+      if (prev && prev.startsWith('blob:')) {
+        URL.revokeObjectURL(prev);
+      }
+      return null;
+    });
+    setOriginalFile(null);
+    setOriginalMeta(null);
+    setResult(null);
+    setKeyColor(null);
+    setBgType('transparent');
+    setBgColor('transparent');
+    maskHistoryRef.current = [];
+    setErrorMessage(null);
+  };
+
+  // Download Output File
   const handleDownload = () => {
     if (!result) return;
-    const ext = bgType === 'transparent' ? 'png' : 'jpg';
-    const baseName = originalFile?.name ? originalFile.name.replace(/\.[^.]+$/, '') : 'removed_bg';
     const a = document.createElement('a');
     a.href = result.dataUrl;
-    a.download = `${baseName}_toolino.${ext}`;
+    const baseName = originalMeta?.name ? originalMeta.name.replace(/\.[^/.]+$/, '') : 'image';
+    const ext = bgType === 'transparent' ? 'png' : 'jpg';
+    a.download = `${baseName}_no_bg.${ext}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    trackToolEvent('background-remover', 'tool_completed');
   };
 
-  // Copy to clipboard
+  // Copy transparent PNG to clipboard
   const handleCopy = async () => {
     if (!result) return;
     try {
-      if (navigator.clipboard && (window as any).ClipboardItem) {
-        await navigator.clipboard.write([
-          new (window as any).ClipboardItem({
-            'image/png': result.blob,
-          }),
-        ]);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      } else {
-        throw new Error('ClipboardItem API not supported');
-      }
+      const item = new ClipboardItem({ 'image/png': result.blob });
+      await navigator.clipboard.write([item]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      handleDownload();
+      setErrorMessage('Direct clipboard copy is not supported in this browser. Please download the image.');
     }
   };
 
-  // Split slider drag handling
-  const handleSliderMove = useCallback(
-    (e: MouseEvent | TouchEvent) => {
-      if (!isDraggingSlider || !containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const x = clientX - rect.left;
-      const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
-      setSliderPos(pct);
-    },
-    [isDraggingSlider]
-  );
+  // Drag split slider interactions
+  const handleSliderMove = useCallback((e: MouseEvent | TouchEvent) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const pos = ((clientX - rect.left) / rect.width) * 100;
+    setSliderPos(Math.min(100, Math.max(0, pos)));
+  }, []);
 
   const handleSliderEnd = useCallback(() => {
     setIsDraggingSlider(false);
@@ -357,651 +425,834 @@ export function BackgroundRemover() {
     };
   }, [isDraggingSlider, handleSliderMove, handleSliderEnd]);
 
+  // Clean up object URLs
+  useEffect(() => {
+    return () => {
+      if (selectedImage && selectedImage.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedImage);
+      }
+    };
+  }, [selectedImage]);
+
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
-      {/* Top Breadcrumb & Header */}
-      <div className="border-b border-slate-200/80 bg-white/70 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1"
-            >
-              <span>Toolino</span>
-              <span className="text-slate-300">/</span>
+    <div className="bg-[#f8fafc] w-full min-h-[calc(100vh-72px)] lg:h-[calc(100vh-72px)] lg:max-h-[calc(100vh-72px)] lg:overflow-hidden flex flex-col font-sans">
+      {/* Hidden File Inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleFile(e.target.files[0]);
+          }
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={replaceFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            handleFile(e.target.files[0]);
+          }
+          e.target.value = '';
+        }}
+      />
+
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex-1 flex flex-col justify-between min-h-0">
+        {/* TOP SECTION: Breadcrumb + Header + Privacy Badge + Alert */}
+        <div className="shrink-0 space-y-1.5">
+          {/* 1. Breadcrumb */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Link href="/" className="hover:text-blue-600 transition-colors">
+              Home
             </Link>
-            <Link
-              href="/image-tools"
-              className="text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1"
-            >
-              <span>Image Tools</span>
-              <span className="text-slate-300">/</span>
+            <span className="text-slate-300">/</span>
+            <Link href="/image-tools" className="hover:text-blue-600 transition-colors">
+              Image Tools
             </Link>
-            <span className="text-xs font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">
-              Background Remover
-            </span>
-          </div>
+            <span className="text-slate-300">/</span>
+            <span className="font-bold text-slate-900">Background Remover</span>
+          </nav>
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              100% Client-Side • Zero Data Uploaded
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {/* Title & Introduction */}
-        <div className="text-center max-w-3xl mx-auto mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 mb-3 shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            Instant AI Silhouette Matting
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Free Online Background Remover
-          </h1>
-          <p className="mt-2 text-base text-slate-600">
-            Remove image backgrounds in 1 second. Clean edges, transparent PNGs, custom studio colors, and zero quality loss.
-          </p>
-        </div>
-
-        {/* Error Notification */}
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3 max-w-4xl mx-auto animate-in fade-in slide-in-from-top-2">
-            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-rose-800">Processing Error</p>
-              <p className="text-sm text-rose-700 mt-0.5">{errorMessage}</p>
-            </div>
-            <button
-              onClick={() => setErrorMessage(null)}
-              className="text-rose-500 hover:text-rose-700 text-xs font-semibold"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
-        {/* State 1: Upload Dropzone if no image selected */}
-        {!selectedImage ? (
-          <div className="max-w-3xl mx-auto">
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  handleFile(e.dataTransfer.files[0]);
-                }
-              }}
-              onClick={() => fileInputRef.current?.click()}
-              className="relative group border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-200 bg-white/60 hover:bg-blue-50/30 shadow-xs hover:shadow-md"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    handleFile(e.target.files[0]);
-                  }
-                }}
-              />
-
-              <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shadow-inner">
-                <UploadCloud className="w-10 h-10" />
+          {/* 2. Compact Page Header */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-8 h-8 sm:w-9 sm:h-9 bg-blue-600 rounded-xl flex flex-col items-center justify-center text-white shadow-2xs shrink-0 relative overflow-hidden"
+                aria-hidden="true"
+              >
+                <div className="absolute top-0 right-0 w-2 h-2 bg-blue-700 rounded-bl-sm"></div>
+                <Eraser className="w-4 h-4 text-white" />
               </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                    Background Remover
+                  </h1>
+                  <span className="px-2 py-0.5 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200/60 rounded-full">
+                    v1.0.0
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-slate-500 hidden sm:block">
+                  Remove the background from your image automatically and download a clean transparent result.
+                </p>
+              </div>
+            </div>
 
-              <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                Drop your image here, or browse
-              </h2>
-              <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
-                Supports JPG, PNG, WebP, AVIF, HEIC up to 40MB. Works offline directly in your browser.
-              </p>
+            {/* Privacy Badge */}
+            <div className="bg-emerald-50/90 border border-emerald-200/80 rounded-full px-3 py-1 flex items-center gap-1.5 shadow-2xs shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="text-xs font-semibold text-slate-800 hidden sm:inline">Your image stays on your device</span>
+              <span className="text-[11px] text-emerald-700 font-medium sm:before:content-['•_'] sm:before:mr-1">
+                100% secure
+              </span>
+            </div>
+          </div>
 
+          {/* Error Alert Banner */}
+          {errorMessage && (
+            <div
+              role="alert"
+              className="bg-red-50 border border-red-200 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 text-red-800 text-xs shrink-0 animate-in fade-in"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                <span className="font-semibold truncate">{errorMessage}</span>
+              </div>
               <button
                 type="button"
-                className="mt-6 px-6 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all"
+                onClick={() => setErrorMessage(null)}
+                className="text-red-600 hover:text-red-900 font-bold text-xs shrink-0 ml-2"
+                aria-label="Dismiss error"
               >
-                Upload Photo
+                ✕
               </button>
             </div>
+          )}
+        </div>
 
-            {/* Quick Sample Image Demos */}
-            <div className="mt-8 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
-                Or try instantly with a sample image:
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {SAMPLE_IMAGES.map((sample) => (
-                  <button
-                    key={sample.name}
-                    onClick={() => handleSampleLoad(sample)}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 text-slate-700 hover:text-blue-700 transition-all shadow-xs"
-                  >
-                    <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
-                    <span>{sample.name}</span>
-                    <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
-                      {sample.type}
-                    </span>
-                  </button>
-                ))}
+        {/* MIDDLE SECTION: Upload Area OR Main Two-Column Workspace */}
+        <div className="flex-1 flex flex-col min-h-0 my-2">
+          {!selectedImage ? (
+            /* ========================================================================= */
+            /* 1. INITIAL UPLOAD STATE                                                   */
+            /* ========================================================================= */
+            <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4">
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragOver(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragOver(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDragOver(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                  }
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className={`w-full max-w-xl mx-auto rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all cursor-pointer flex flex-col items-center justify-center bg-white shadow-xs ${
+                  isDragOver
+                    ? 'border-blue-500 bg-blue-50/50 scale-[1.01]'
+                    : 'border-slate-300 hover:border-blue-400 hover:bg-slate-50/50'
+                }`}
+              >
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 shadow-2xs">
+                  <UploadCloud className="w-8 h-8" />
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-slate-800 mb-1.5">
+                  Remove Image Background
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 mb-5 max-w-xs">
+                  Drag &amp; drop your image here, or click to choose from your device.
+                </p>
+                <button
+                  type="button"
+                  id="choose-image-button"
+                  className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-xs transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Choose Image
+                </button>
+                <div className="flex items-center gap-3 mt-6 text-[11px] text-slate-400 font-medium">
+                  <span>JPG • PNG • WebP</span>
+                  <span>•</span>
+                  <span>Single image</span>
+                  <span>•</span>
+                  <span>Up to 40 MB</span>
+                </div>
+              </div>
+
+              {/* Instant Sample Demos */}
+              <div className="mt-5 text-center">
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                  Or test instantly with a sample:
+                </span>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {SAMPLE_IMAGES.map((sample) => (
+                    <button
+                      key={sample.name}
+                      type="button"
+                      onClick={() => handleSampleLoad(sample)}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 text-slate-700 hover:text-blue-700 transition shadow-2xs"
+                    >
+                      <Sparkles className="w-3 h-3 text-blue-500" />
+                      <span>{sample.name}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          /* State 2: Active Image Editor & Controls */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left 8 Cols: Interactive Preview Canvas */}
-            <div className="lg:col-span-8 flex flex-col gap-4">
-              {/* Canvas Card */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-                {/* View Toolbar */}
-                <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
-                  {/* View Mode Tabs */}
-                  <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-xs">
-                    <button
-                      onClick={() => setViewMode('split')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-                        viewMode === 'split'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Split className="w-3.5 h-3.5" />
-                      Split Slider
-                    </button>
-                    <button
-                      onClick={() => setViewMode('side-by-side')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-                        viewMode === 'side-by-side'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Layers className="w-3.5 h-3.5" />
-                      Side by Side
-                    </button>
-                    <button
-                      onClick={() => setViewMode('result-only')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
-                        viewMode === 'result-only'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      Result
-                    </button>
+          ) : (
+            /* ========================================================================= */
+            /* 2. MAIN WORKSPACE (TWO-COLUMN BALANCED LAYOUT)                             */
+            /* ========================================================================= */
+            <div className="flex-1 flex flex-col min-h-0 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+              {/* Document/Image Information Bar */}
+              <div className="px-4 py-2 bg-slate-50/80 border-b border-slate-200/80 flex items-center justify-between gap-3 shrink-0 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <ImageIcon className="w-4 h-4" />
                   </div>
-
-                  {/* Interactive Tools */}
-                  <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-xs">
-                    <button
-                      onClick={() => setActiveTool('pointer')}
-                      title="Inspect / Default Cursor"
-                      className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        activeTool === 'pointer' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setActiveTool('eyedropper')}
-                      title="Click background color on image to remove"
-                      className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        activeTool === 'eyedropper' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Pipette className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setActiveTool('erase')}
-                      title="Erase Brush (Remove leftover background)"
-                      className={`p-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        activeTool === 'erase' ? 'bg-rose-600 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      <Eraser className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleUndo}
-                      title="Undo touch-up brush stroke"
-                      className="p-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-                    >
-                      <Undo2 className="w-4 h-4" />
-                    </button>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                      {originalMeta?.name || 'Uploaded Image'}
+                    </p>
+                    <p className="text-[11px] text-slate-500 flex items-center gap-2">
+                      <span>{originalMeta ? formatFileSize(originalMeta.size) : ''}</span>
+                      <span>•</span>
+                      <span>
+                        {originalMeta ? `${originalMeta.width} × ${originalMeta.height}` : ''}
+                      </span>
+                    </p>
                   </div>
+                </div>
 
-                  {/* Re-upload button */}
+                {/* Document Actions */}
+                <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => {
-                      setSelectedImage(null);
-                      setResult(null);
-                      setOriginalFile(null);
-                    }}
-                    className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1"
+                    type="button"
+                    onClick={() => replaceFileInputRef.current?.click()}
+                    className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition shadow-2xs flex items-center gap-1.5"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    Change Image
+                    Replace Image
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleStartOver}
+                    className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-white border border-rose-200 rounded-lg hover:bg-rose-50 transition shadow-2xs flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Remove Image
                   </button>
                 </div>
+              </div>
 
-                {/* Brush Size Helper Bar when tool active */}
-                {(activeTool === 'erase' || activeTool === 'restore') && (
-                  <div className="px-4 py-2 bg-blue-50/60 border-b border-blue-100 flex items-center justify-between text-xs text-blue-900">
-                    <span className="font-semibold flex items-center gap-1.5">
-                      <Eraser className="w-3.5 h-3.5 text-blue-600" />
-                      Touch-up Brush Active: Paint on preview to erase unwanted spots
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span>Size: {brushSize}px</span>
-                      <input
-                        type="range"
-                        min="8"
-                        max="80"
-                        value={brushSize}
-                        onChange={(e) => setBrushSize(parseInt(e.target.value, 10))}
-                        className="w-24 accent-blue-600 cursor-pointer"
-                      />
+              {/* Main Workspace: Left (Preview) + Right (Settings) */}
+              <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200/80">
+                {/* ------------------------------------------------------------- */}
+                {/* LEFT: INTERACTIVE BEFORE / AFTER PREVIEW CANVAS               */}
+                {/* ------------------------------------------------------------- */}
+                <div className="lg:col-span-7 flex flex-col min-h-0 bg-slate-50/60 p-3 sm:p-4">
+                  {/* View Toolbar: View Modes & Interactive Tools */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200/60 shrink-0 text-xs">
+                    {/* View Modes Tabs */}
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('split')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                          viewMode === 'split'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        Split Slider
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('side-by-side')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                          viewMode === 'side-by-side'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        Side by Side
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('result-only')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                          viewMode === 'result-only'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        Result Only
+                      </button>
+                    </div>
+
+                    {/* Interactive Touch-up Brush Tools */}
+                    <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool('pointer')}
+                        title="Pointer / Inspect"
+                        className={`p-1.5 rounded-lg text-xs font-medium transition ${
+                          activeTool === 'pointer'
+                            ? 'bg-slate-800 text-white'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <MousePointer className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool('erase')}
+                        title="Erase Brush (Remove leftovers)"
+                        className={`p-1.5 rounded-lg text-xs font-medium transition ${
+                          activeTool === 'erase'
+                            ? 'bg-rose-600 text-white'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Eraser className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool('restore')}
+                        title="Restore Brush (Bring back parts)"
+                        className={`p-1.5 rounded-lg text-xs font-medium transition ${
+                          activeTool === 'restore'
+                            ? 'bg-emerald-600 text-white'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Brush className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool('eyedropper')}
+                        title="Eyedropper (Sample background color to key out)"
+                        className={`p-1.5 rounded-lg text-xs font-medium transition ${
+                          activeTool === 'eyedropper'
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Pipette className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Undo Button */}
+                      <button
+                        type="button"
+                        onClick={handleUndo}
+                        disabled={maskHistoryRef.current.length === 0}
+                        title="Undo brush stroke"
+                        className="p-1.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
-                )}
 
-                {/* Eyedropper Tip */}
-                {activeTool === 'eyedropper' && (
-                  <div className="px-4 py-2 bg-amber-50/80 border-b border-amber-200 text-xs text-amber-900 flex items-center justify-between">
-                    <span className="font-semibold flex items-center gap-1.5">
-                      <Pipette className="w-3.5 h-3.5 text-amber-600" />
-                      Eyedropper Tool Active: Click anywhere on the background to sample and remove that exact color.
-                    </span>
-                    <button
-                      onClick={() => setActiveTool('pointer')}
-                      className="text-amber-700 hover:text-amber-900 font-bold underline"
-                    >
-                      Done
-                    </button>
-                  </div>
-                )}
-
-                {/* Canvas Display Area */}
-                <div
-                  ref={containerRef}
-                  onClick={handleCanvasClick}
-                  onMouseDown={handleTouchDown}
-                  onMouseMove={handleTouchMove}
-                  onMouseUp={handleTouchUp}
-                  className={`relative select-none w-full min-h-[420px] max-h-[650px] flex items-center justify-center p-4 overflow-hidden ${
-                    activeTool === 'eyedropper'
-                      ? 'cursor-crosshair'
-                      : activeTool === 'erase' || activeTool === 'restore'
-                      ? 'cursor-cell'
-                      : 'cursor-default'
-                  } bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] bg-slate-100/60`}
-                >
-                  {/* Processing Overlay */}
-                  {isProcessing && (
-                    <div className="absolute inset-0 bg-white/70 backdrop-blur-xs z-20 flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="w-9 h-9 text-blue-600 animate-spin" />
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-800">{progressStage}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{progressPercent}% complete</p>
-                      </div>
+                  {/* Active Tool Helper Note */}
+                  {activeTool !== 'pointer' && (
+                    <div className="mb-2 px-3 py-1 bg-blue-50 border border-blue-200/80 rounded-lg flex items-center justify-between text-[11px] text-blue-900 shrink-0">
+                      <span>
+                        {activeTool === 'erase'
+                          ? 'Erase Brush Active: Click & drag to remove leftover background.'
+                          : activeTool === 'restore'
+                          ? 'Restore Brush Active: Click & drag to restore accidentally removed subject parts.'
+                          : 'Eyedropper Active: Click on the image to sample the background color.'}
+                      </span>
+                      {(activeTool === 'erase' || activeTool === 'restore') && (
+                        <div className="flex items-center gap-1.5 ml-2">
+                          <span className="text-[10px] text-slate-500">Size:</span>
+                          <input
+                            type="range"
+                            min="10"
+                            max="60"
+                            value={brushSize}
+                            onChange={(e) => setBrushSize(parseInt(e.target.value, 10))}
+                            className="w-16 accent-blue-600 cursor-pointer h-1"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* View Mode 1: Split Comparison Slider */}
-                  {viewMode === 'split' && result && (
-                    <div className="relative max-w-full max-h-[580px] rounded-2xl overflow-hidden shadow-md flex items-center justify-center">
-                      {/* Underneath: Processed Image */}
-                      <img
-                        src={result.dataUrl}
-                        alt="Background removed"
-                        className="max-h-[580px] w-auto object-contain block"
-                      />
-
-                      {/* Overlay: Original Image clipped to slider pos */}
+                  {/* Canvas Viewport with Subtle Checkerboard */}
+                  <div className="flex-1 min-h-0 flex items-center justify-center p-2 relative">
+                    {/* View Mode 1: Split Slider */}
+                    {viewMode === 'split' && (
                       <div
-                        className="absolute inset-0 overflow-hidden pointer-events-none"
-                        style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+                        ref={containerRef}
+                        onClick={handleCanvasClick}
+                        onMouseDown={handleTouchDown}
+                        onMouseMove={handleTouchMove}
+                        onMouseUp={handleTouchUp}
+                        className={`relative max-h-full max-w-full aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200/90 shadow-md select-none ${
+                          activeTool === 'eyedropper'
+                            ? 'cursor-crosshair'
+                            : activeTool === 'erase' || activeTool === 'restore'
+                            ? 'cursor-pointer'
+                            : 'cursor-default'
+                        }`}
+                        style={{
+                          backgroundImage:
+                            'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+                          backgroundSize: '16px 16px',
+                          backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
+                          backgroundColor: '#ffffff',
+                        }}
                       >
-                        <img
-                          src={selectedImage}
-                          alt="Original"
-                          className="max-h-[580px] w-full h-full object-contain block"
-                        />
+                        {/* Background-Removed Result Layer */}
+                        {result && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={result.dataUrl}
+                            alt="Background removed"
+                            className="w-full h-full object-contain pointer-events-none"
+                          />
+                        )}
+
+                        {/* Original Image Layer (Clipped to slider percentage) */}
+                        <div
+                          className="absolute inset-0 overflow-hidden pointer-events-none"
+                          style={{ width: `${sliderPos}%` }}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={selectedImage}
+                            alt="Original"
+                            className="absolute top-0 left-0 max-w-none h-full"
+                            style={{
+                              width: containerRef.current ? `${containerRef.current.clientWidth}px` : '100%',
+                              objectFit: 'contain',
+                            }}
+                          />
+                          <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-slate-900/70 text-white text-[10px] font-bold backdrop-blur-xs">
+                            Before
+                          </span>
+                        </div>
+
+                        <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-blue-600/80 text-white text-[10px] font-bold backdrop-blur-xs pointer-events-none">
+                          After
+                        </span>
+
+                        {/* Interactive Draggable Divider Handle */}
+                        <div
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            setIsDraggingSlider(true);
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            setIsDraggingSlider(true);
+                          }}
+                          className="absolute top-0 bottom-0 w-0.5 bg-white cursor-ew-resize shadow-md flex items-center justify-center pointer-events-auto"
+                          style={{ left: `${sliderPos}%` }}
+                        >
+                          <div className="w-7 h-7 -ml-3.5 rounded-full bg-white border border-slate-300 shadow-md flex items-center justify-center text-slate-600 hover:text-blue-600">
+                            <Split className="w-3.5 h-3.5" />
+                          </div>
+                        </div>
+
+                        {/* Loading Spinner during automatic processing */}
+                        {isProcessing && (
+                          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-2xs flex flex-col items-center justify-center text-white gap-2">
+                            <Loader2 className="w-7 h-7 animate-spin text-white" />
+                            <span className="text-xs font-bold">{progressStage}</span>
+                          </div>
+                        )}
                       </div>
+                    )}
 
-                      {/* Interactive Divider Line */}
-                      <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-white cursor-ew-resize z-10 shadow-[0_0_10px_rgba(0,0,0,0.5)]"
-                        style={{ left: `${sliderPos}%` }}
-                        onMouseDown={() => setIsDraggingSlider(true)}
-                        onTouchStart={() => setIsDraggingSlider(true)}
-                      >
-                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white shadow-lg border border-slate-300 flex items-center justify-center text-slate-700">
-                          <Split className="w-4 h-4" />
+                    {/* View Mode 2: Side by Side */}
+                    {viewMode === 'side-by-side' && (
+                      <div className="w-full h-full grid grid-cols-2 gap-3 min-h-0">
+                        {/* Before */}
+                        <div className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                          <div className="px-3 py-1.5 bg-slate-100/70 border-b border-slate-200 text-[11px] font-bold text-slate-700">
+                            Original
+                          </div>
+                          <div className="flex-1 flex items-center justify-center p-2 bg-slate-50">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedImage}
+                              alt="Original"
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                        </div>
+
+                        {/* After */}
+                        <div className="flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+                          <div className="px-3 py-1.5 bg-blue-50 border-b border-blue-100 text-[11px] font-bold text-blue-700">
+                            Background Removed
+                          </div>
+                          <div
+                            className="flex-1 flex items-center justify-center p-2"
+                            style={{
+                              backgroundImage:
+                                'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+                              backgroundSize: '16px 16px',
+                              backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
+                              backgroundColor: '#ffffff',
+                            }}
+                          >
+                            {result ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={result.dataUrl}
+                                alt="Removed"
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            ) : (
+                              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                            )}
+                          </div>
                         </div>
                       </div>
+                    )}
 
-                      {/* Labels */}
-                      <span className="absolute bottom-3 left-3 bg-black/60 text-white text-[11px] font-semibold px-2 py-1 rounded-md backdrop-blur-xs pointer-events-none">
-                        Original
-                      </span>
-                      <span className="absolute bottom-3 right-3 bg-blue-600/80 text-white text-[11px] font-semibold px-2 py-1 rounded-md backdrop-blur-xs pointer-events-none">
-                        Removed
-                      </span>
-                    </div>
-                  )}
-
-                  {/* View Mode 2: Side-by-Side */}
-                  {viewMode === 'side-by-side' && result && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-h-[580px]">
-                      <div className="flex flex-col items-center justify-center bg-white/80 p-3 rounded-2xl border border-slate-200">
-                        <span className="text-xs font-semibold text-slate-500 mb-2">Original Photo</span>
-                        <img
-                          src={selectedImage}
-                          alt="Original"
-                          className="max-h-[460px] w-auto object-contain rounded-xl"
-                        />
-                      </div>
-                      <div className="flex flex-col items-center justify-center bg-white/80 p-3 rounded-2xl border border-slate-200">
-                        <span className="text-xs font-semibold text-blue-600 mb-2">Background Removed</span>
-                        <img
-                          src={result.dataUrl}
-                          alt="Removed"
-                          className="max-h-[460px] w-auto object-contain rounded-xl"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* View Mode 3: Result Only */}
-                  {viewMode === 'result-only' && result && (
-                    <div className="flex items-center justify-center max-h-[580px]">
-                      <img
-                        src={result.dataUrl}
-                        alt="Background removed result"
-                        className="max-h-[580px] w-auto object-contain rounded-2xl shadow-md"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer specs */}
-                {originalMeta && (
-                  <div className="p-3 bg-white border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 px-6">
-                    <div className="flex items-center gap-4">
-                      <span>
-                        Dimensions: <strong className="text-slate-700">{originalMeta.width} × {originalMeta.height} px</strong>
-                      </span>
-                      <span>
-                        Original Size: <strong className="text-slate-700">{(originalMeta.size / 1024).toFixed(1)} KB</strong>
-                      </span>
-                    </div>
-                    {keyColor && (
-                      <div className="flex items-center gap-1.5">
-                        <span>Sampled Key:</span>
-                        <span
-                          className="w-4 h-4 rounded-full border border-slate-300"
-                          style={{ backgroundColor: `rgb(${keyColor.r}, ${keyColor.g}, ${keyColor.b})` }}
-                        />
-                        <button
-                          onClick={() => setKeyColor(null)}
-                          className="text-blue-600 hover:underline font-semibold ml-1"
-                        >
-                          Clear
-                        </button>
+                    {/* View Mode 3: Result Only */}
+                    {viewMode === 'result-only' && (
+                      <div
+                        className="relative max-h-full max-w-full aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200/90 shadow-md flex items-center justify-center"
+                        style={{
+                          backgroundImage:
+                            bgType === 'transparent'
+                              ? 'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)'
+                              : 'none',
+                          backgroundSize: '16px 16px',
+                          backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0',
+                          backgroundColor: bgType === 'solid' ? bgColor : '#ffffff',
+                        }}
+                      >
+                        {result ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={result.dataUrl}
+                            alt="Result only"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                            <span className="text-xs text-slate-500 font-medium">Processing...</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Right 4 Cols: Adjustment Controls & Background Options */}
-            <div className="lg:col-span-4 flex flex-col gap-6">
-              {/* Card 1: Background Replacement */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Palette className="w-4 h-4 text-blue-600" />
-                  <h3 className="text-base font-bold text-slate-900">Background Replacement</h3>
+                  {/* Document Metrics Comparison Pills */}
+                  <div className="mt-2 pt-2 border-t border-slate-200/60 shrink-0 grid grid-cols-2 gap-2 text-center text-xs">
+                    <div className="p-2 rounded-xl bg-white border border-slate-200/70">
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
+                        Original
+                      </span>
+                      <span className="text-xs font-bold text-slate-800">
+                        {originalMeta ? formatFileSize(originalMeta.size) : '—'} • {originalMeta?.width}×{originalMeta?.height}
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-xl bg-white border border-slate-200/70">
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
+                        Result
+                      </span>
+                      <span className="text-xs font-bold text-emerald-700">
+                        {result ? formatFileSize(result.blob.size) : 'Processing...'} • {bgType === 'transparent' ? 'Transparent' : 'Color Fill'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Background Type Tabs */}
-                <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl mb-4 text-xs font-semibold text-slate-600">
-                  <button
-                    onClick={() => {
-                      setBgType('transparent');
-                      setBgColor('transparent');
-                    }}
-                    className={`py-1.5 rounded-lg transition-colors ${
-                      bgType === 'transparent' ? 'bg-white text-blue-600 shadow-xs' : 'hover:text-slate-900'
-                    }`}
-                  >
-                    Transparent
-                  </button>
-                  <button
-                    onClick={() => {
-                      setBgType('solid');
-                      if (bgColor === 'transparent') setBgColor('#ffffff');
-                    }}
-                    className={`py-1.5 rounded-lg transition-colors ${
-                      bgType === 'solid' ? 'bg-white text-blue-600 shadow-xs' : 'hover:text-slate-900'
-                    }`}
-                  >
-                    Solid Color
-                  </button>
-                  <button
-                    onClick={() => setBgType('gradient')}
-                    className={`py-1.5 rounded-lg transition-colors ${
-                      bgType === 'gradient' ? 'bg-white text-blue-600 shadow-xs' : 'hover:text-slate-900'
-                    }`}
-                  >
-                    Gradient
-                  </button>
-                </div>
+                {/* ------------------------------------------------------------- */}
+                {/* RIGHT: BACKGROUND REMOVAL CONTROLS & SETTINGS                 */}
+                {/* ------------------------------------------------------------- */}
+                <div className="lg:col-span-5 flex flex-col min-h-0 bg-white p-3 sm:p-4 overflow-y-auto">
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-200/60 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-blue-600" />
+                      <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                        Background Tools
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleResetFineTuning}
+                      className="text-[11px] font-medium text-slate-500 hover:text-blue-600 transition flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Reset Fine-Tuning
+                    </button>
+                  </div>
 
-                {/* Solid Color Palette & Picker */}
-                {bgType === 'solid' && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-medium text-slate-500">Popular Presets:</p>
-                    <div className="grid grid-cols-5 gap-2">
-                      {COLOR_PRESETS.slice(1).map((color) => (
+                  <div className="space-y-4 flex-1 text-xs">
+                    {/* 1. BACKGROUND REPLACEMENT */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-800 block mb-1.5">
+                        Background
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl mb-3">
                         <button
-                          key={color.label}
-                          onClick={() => setBgColor(color.value)}
-                          title={color.label}
-                          className={`w-full aspect-square rounded-xl transition-all ${color.preview} ${
-                            bgColor === color.value ? 'ring-2 ring-blue-600 ring-offset-2 scale-105' : 'hover:scale-105'
+                          type="button"
+                          onClick={() => {
+                            setBgType('transparent');
+                            setBgColor('transparent');
+                          }}
+                          className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                            bgType === 'transparent'
+                              ? 'bg-white text-blue-700 shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
                           }`}
-                        />
-                      ))}
+                        >
+                          Transparent
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBgType('solid');
+                            if (bgColor === 'transparent') setBgColor('#ffffff');
+                          }}
+                          className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                            bgType === 'solid'
+                              ? 'bg-white text-blue-700 shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Solid Color
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBgType('gradient')}
+                          className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                            bgType === 'gradient'
+                              ? 'bg-white text-blue-700 shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Gradient
+                        </button>
+                      </div>
+
+                      {/* Transparent info notice */}
+                      {bgType === 'transparent' && (
+                        <p className="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-200/80 leading-relaxed">
+                          Transparent background works well for logos, products, and profile images. Saved as high-res PNG.
+                        </p>
+                      )}
+
+                      {/* Solid color palette */}
+                      {bgType === 'solid' && (
+                        <div className="space-y-2.5 animate-in fade-in-50">
+                          <div className="grid grid-cols-5 gap-1.5">
+                            {COLOR_PRESETS.slice(1).map((preset) => (
+                              <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => setBgColor(preset.value)}
+                                title={preset.label}
+                                className={`w-full aspect-square rounded-xl transition-all ${preset.preview} ${
+                                  bgColor === preset.value
+                                    ? 'ring-2 ring-blue-600 ring-offset-2 scale-105'
+                                    : 'hover:scale-105'
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Custom Hex Color */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <input
+                              type="color"
+                              value={bgColor === 'transparent' ? '#ffffff' : bgColor}
+                              onChange={(e) => setBgColor(e.target.value)}
+                              className="w-8 h-8 rounded-lg cursor-pointer border border-slate-200 p-0.5"
+                            />
+                            <div className="flex-1 flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1 bg-white">
+                              <span className="text-[10px] font-semibold text-slate-400">HEX:</span>
+                              <input
+                                type="text"
+                                value={bgColor}
+                                onChange={(e) => setBgColor(e.target.value)}
+                                className="w-full text-xs font-mono font-bold text-slate-800 outline-hidden"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Gradient presets */}
+                      {bgType === 'gradient' && (
+                        <div className="grid grid-cols-2 gap-1.5 animate-in fade-in-50">
+                          {Object.entries(GRADIENT_PRESETS).map(([key, grad]) => (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => setGradientType(key as any)}
+                              className={`p-2 rounded-xl border text-left transition ${
+                                gradientType === key
+                                  ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
+                                  : 'border-slate-200 hover:border-slate-300'
+                              }`}
+                            >
+                              <div
+                                className="w-full h-6 rounded-lg mb-1 shadow-2xs"
+                                style={{
+                                  background: `linear-gradient(135deg, ${grad.stops[0]}, ${grad.stops[1]})`,
+                                }}
+                              />
+                              <span className="text-[10px] font-semibold text-slate-700 block truncate">
+                                {grad.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Custom Hex Color Input */}
-                    <div className="flex items-center gap-3 pt-2">
-                      <input
-                        type="color"
-                        value={bgColor === 'transparent' ? '#ffffff' : bgColor}
-                        onChange={(e) => setBgColor(e.target.value)}
-                        className="w-10 h-10 rounded-xl cursor-pointer border border-slate-200 p-1"
-                      />
-                      <div className="flex-1">
-                        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                          Custom Hex
-                        </label>
+                    {/* 2. FINE-TUNING & EDGE CLEANUP */}
+                    <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-200/80 space-y-3">
+                      <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                        Edge &amp; Color Fine-Tuning
+                      </span>
+
+                      {/* Color Tolerance */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] font-medium mb-1">
+                          <span className="text-slate-700 font-semibold">Color Tolerance</span>
+                          <span className="font-mono text-slate-500 font-bold">{tolerance}%</span>
+                        </div>
                         <input
-                          type="text"
-                          value={bgColor}
-                          onChange={(e) => setBgColor(e.target.value)}
-                          className="w-full text-xs font-mono font-medium px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-blue-500"
+                          type="range"
+                          min="5"
+                          max="65"
+                          value={tolerance}
+                          onChange={(e) => setTolerance(parseInt(e.target.value, 10))}
+                          className="w-full accent-blue-600 cursor-pointer h-1.5"
+                        />
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          Higher tolerance removes more background color.
+                        </p>
+                      </div>
+
+                      {/* Edge Feathering */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] font-medium mb-1">
+                          <span className="text-slate-700 font-semibold">Edge Softness (Feathering)</span>
+                          <span className="font-mono text-slate-500 font-bold">{feather} px</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="10"
+                          value={feather}
+                          onChange={(e) => setFeather(parseInt(e.target.value, 10))}
+                          className="w-full accent-blue-600 cursor-pointer h-1.5"
                         />
                       </div>
+
+                      {/* Halo Removal */}
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] font-medium mb-1">
+                          <span className="text-slate-700 font-semibold">Halo Removal (Edge Shift)</span>
+                          <span className="font-mono text-slate-500 font-bold">{edgeShift} px</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="-4"
+                          max="4"
+                          value={edgeShift}
+                          onChange={(e) => setEdgeShift(parseInt(e.target.value, 10))}
+                          className="w-full accent-blue-600 cursor-pointer h-1.5"
+                        />
+                      </div>
+
+                      {/* Color Despill */}
+                      <label className="flex items-center justify-between cursor-pointer pt-1 border-t border-slate-200/80">
+                        <div>
+                          <span className="text-xs font-semibold text-slate-800 block">Color Despill</span>
+                          <span className="text-[10px] text-slate-400">Neutralizes edge color reflections</span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={despill}
+                          onChange={(e) => setDespill(e.target.checked)}
+                          className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                        />
+                      </label>
+                    </div>
+
+                    {/* 3. DOWNLOAD & ACTIONS */}
+                    <div className="space-y-2 pt-1">
+                      <button
+                        type="button"
+                        id="download-image-button"
+                        onClick={handleDownload}
+                        disabled={!result || isProcessing}
+                        className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download Image ({bgType === 'transparent' ? 'PNG' : 'JPG'})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopy}
+                        disabled={!result || isProcessing}
+                        className="w-full py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-700 font-bold">Copied to Clipboard!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Copy to Clipboard</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
-                )}
-
-                {/* Studio Gradient Presets */}
-                {bgType === 'gradient' && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(GRADIENT_PRESETS).map(([key, grad]) => (
-                      <button
-                        key={key}
-                        onClick={() => setGradientType(key as any)}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          gradientType === key
-                            ? 'border-blue-600 ring-2 ring-blue-600/20 bg-blue-50/20'
-                            : 'border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        <div
-                          className="w-full h-8 rounded-lg mb-1.5 shadow-xs"
-                          style={{
-                            background: `linear-gradient(135deg, ${grad.stops[0]}, ${grad.stops[1]})`,
-                          }}
-                        />
-                        <span className="text-[11px] font-semibold text-slate-700 block truncate">
-                          {grad.label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Card 2: Fine-Tuning Sliders */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-blue-600" />
-                    <h3 className="text-base font-bold text-slate-900">Fine-Tuning</h3>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setTolerance(24);
-                      setFeather(2);
-                      setEdgeShift(-1);
-                      setDespill(true);
-                      setKeyColor(null);
-                    }}
-                    className="text-[11px] font-semibold text-blue-600 hover:underline"
-                  >
-                    Reset
-                  </button>
-                </div>
-
-                {/* Tolerance */}
-                <div>
-                  <div className="flex justify-between items-center text-xs font-medium mb-1.5">
-                    <span className="text-slate-700 font-semibold">Color Tolerance</span>
-                    <span className="text-slate-500 font-mono">{tolerance}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="5"
-                    max="65"
-                    value={tolerance}
-                    onChange={(e) => setTolerance(parseInt(e.target.value, 10))}
-                    className="w-full accent-blue-600 cursor-pointer"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Increase if background remains; decrease if subject disappears.
-                  </p>
-                </div>
-
-                {/* Edge Feathering */}
-                <div>
-                  <div className="flex justify-between items-center text-xs font-medium mb-1.5">
-                    <span className="text-slate-700 font-semibold">Edge Feathering (Softness)</span>
-                    <span className="text-slate-500 font-mono">{feather} px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    value={feather}
-                    onChange={(e) => setFeather(parseInt(e.target.value, 10))}
-                    className="w-full accent-blue-600 cursor-pointer"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Blurs edge boundaries for a natural blend without jagged pixels.
-                  </p>
-                </div>
-
-                {/* Halo Removal (Erosion) */}
-                <div>
-                  <div className="flex justify-between items-center text-xs font-medium mb-1.5">
-                    <span className="text-slate-700 font-semibold">Halo Removal (Edge Shift)</span>
-                    <span className="text-slate-500 font-mono">{edgeShift} px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="-4"
-                    max="4"
-                    value={edgeShift}
-                    onChange={(e) => setEdgeShift(parseInt(e.target.value, 10))}
-                    className="w-full accent-blue-600 cursor-pointer"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Trims border halo (negative values remove edge fringes).
-                  </p>
-                </div>
-
-                {/* Despill Toggle */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-800 block">Color Despill</span>
-                    <span className="text-[11px] text-slate-400">Neutralizes old background color reflections</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={despill}
-                    onChange={(e) => setDespill(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded cursor-pointer"
-                  />
                 </div>
               </div>
+            </div>
+          )}
+        </div>
 
-              {/* Card 3: Export & Download */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-3">
-                <button
-                  onClick={handleDownload}
-                  disabled={!result || isProcessing}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download High-Res Image</span>
-                </button>
+        {/* BOTTOM SECTION: Guarantee Badge */}
+        {selectedImage && (
+          <div className="shrink-0 pt-2 flex items-center justify-between gap-3 border-t border-slate-200/80">
+            <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Images are processed in memory and never uploaded to any server.</span>
+            </div>
 
-                <button
-                  onClick={handleCopy}
-                  disabled={!result || isProcessing}
-                  className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span className="text-emerald-700 font-bold">Copied to Clipboard!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Transparent PNG</span>
-                    </>
-                  )}
-                </button>
-              </div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <span>{originalMeta?.width} × {originalMeta?.height} px</span>
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

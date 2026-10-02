@@ -1,18 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import Link from 'next/link';
 import { GstCalculator } from '@/components/tools/GstCalculator';
-import { Container } from '@/components/common/Container';
-import {
-  Receipt,
-  Building2,
-  Globe2,
-  ArrowRight,
-  ShieldCheck,
-  Percent,
-  CheckCircle2,
-  HelpCircle,
-} from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'GST Calculator - Calculate CGST, SGST & IGST (Add or Remove GST) | Toolino',
@@ -75,7 +63,7 @@ export default function GstCalculatorPage() {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'Utility & Tax Tools',
+        name: 'Calculators',
         item: `${baseUrl}/utility-tools`,
       },
       {
@@ -127,7 +115,7 @@ export default function GstCalculatorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-10">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppSchema) }}
@@ -141,154 +129,7 @@ export default function GstCalculatorPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <Container size="xl">
-        {/* Breadcrumb Navigation */}
-        <nav aria-label="Breadcrumb" className="mb-6 text-xs text-slate-500 flex items-center space-x-2">
-          <Link href="/" className="hover:text-blue-600 transition">
-            Home
-          </Link>
-          <span>/</span>
-          <Link href="/utility-tools" className="hover:text-blue-600 transition">
-            Tools
-          </Link>
-          <span>/</span>
-          <span className="text-slate-800 font-semibold">GST Calculator</span>
-        </nav>
-
-        {/* Hero Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
-            India Goods &amp; Services Tax
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
-            GST Calculator
-          </h1>
-          <p className="mt-3 text-base text-slate-600 leading-relaxed">
-            Easily compute GST-inclusive and GST-exclusive prices for invoices, bills, and tax returns with automatic CGST, SGST, and IGST breakdowns.
-          </p>
-        </div>
-
-        {/* Interactive Tool Component */}
-        <GstCalculator />
-
-        {/* Educational Section & Internal Links */}
-        <div className="max-w-4xl mx-auto mt-20 pt-12 border-t border-slate-200/80 space-y-16">
-          <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-xs space-y-6">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Understanding Indian GST: CGST, SGST, and IGST
-            </h2>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Under India&apos;s dual GST framework, both the Central and State Governments levy taxes concurrently. Determining whether a supply is intra-state or inter-state is essential for issuing compliant tax invoices.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-bold text-slate-900 text-sm">Intra-State Supply</h3>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  When the location of the supplier and place of supply are in the same State or Union Territory. The GST rate is divided 50/50 between Central GST (CGST) and State GST (SGST).
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Globe2 className="w-5 h-5 text-indigo-600" />
-                  <h3 className="font-bold text-slate-900 text-sm">Inter-State Supply</h3>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  When the supplier and place of supply are in different States or Union Territories. The entire tax is levied as Integrated GST (IGST) collected by the Central Government.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Related Tools Internal Linking */}
-          <div className="bg-slate-100/70 rounded-3xl border border-slate-200 p-8 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Explore Companion Financial Calculators</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              <Link
-                href="/emi-calculator"
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <p className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition">
-                    EMI Calculator
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Loans &amp; amortization</p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition" />
-              </Link>
-
-              <Link
-                href="/percentage-calculator"
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <p className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition">
-                    Percentage Calculator
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Increases &amp; margins</p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition" />
-              </Link>
-
-              <Link
-                href="/discount-calculator"
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <p className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition">
-                    Discount Calculator
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Stacked sales deals</p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition" />
-              </Link>
-
-              <Link
-                href="/age-calculator"
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <p className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition">
-                    Age Calculator
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Exact age in seconds</p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Frequently Asked Questions */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-slate-900 text-center">
-              Frequently Asked Questions
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                <h3 className="font-bold text-slate-900 text-sm mb-2">
-                  How does reverse GST calculation work?
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  When a sticker price includes GST, dividing by (1 + rate/100) extracts the exact net base price before tax was added.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                <h3 className="font-bold text-slate-900 text-sm mb-2">
-                  Are GST calculations logged or tracked?
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  No. All calculations run client-side on your local device. Toolino never collects, logs, or transmits financial transaction figures.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Container>
-    </div>
+      <GstCalculator />
+    </>
   );
 }

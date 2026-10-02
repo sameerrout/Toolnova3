@@ -121,7 +121,7 @@ export const protectPdfTool: IToolDefinition<ProtectPdfOptions> = {
 
     onProgress({ progress: 95, statusText: 'Generating secure download...' });
 
-    const finalBlob = new Blob([encryptedBytes.buffer as ArrayBuffer], {
+    const finalBlob = new Blob([new Uint8Array(encryptedBytes)], {
       type: 'application/pdf',
     });
 

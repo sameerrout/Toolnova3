@@ -108,4 +108,30 @@ console.log('\nTest 7: Boundary & Safety validation...');
   console.log('  ✓ Zero, overflow, and NaN safely contained');
 }
 
+// 8. TEST: Live HTTP endpoint verification of /discount-calculator
+console.log('\nTest 8: Verifying HTTP response of /discount-calculator...');
+{
+  const response = await fetch('http://localhost:3000/discount-calculator');
+  assert.strictEqual(response.status, 200, 'Route should return HTTP 200 OK');
+  const html = await response.text();
+
+  // Verify Header & Redesign
+  assert(html.includes('Discount Calculator'), 'HTML must include Discount Calculator');
+  assert(html.includes('v1.0.0'), 'HTML must include v1.0.0 badge');
+  assert(html.includes('Calculations stay on your device'), 'HTML must include privacy badge');
+  assert(html.includes('Original Price'), 'HTML must include Original Price');
+  assert(html.includes('Discount Percentage'), 'HTML must include Discount Percentage');
+  assert(html.includes('Calculate Discount'), 'HTML must include Calculate Discount button');
+  assert(html.includes('Final Payable Price'), 'HTML must include Final Payable Price hero card');
+
+  // Verify Footer is REMOVED
+  assert(!html.includes('© 2026 Toolino. All rights reserved.'), 'Footer copyright should NOT be present on discount-calculator page');
+  assert(!html.includes('Created by Sameer Rout &amp; Sampangi Sony'), 'Footer credits should NOT be present on discount-calculator page');
+
+  // Verify NO Sidebars
+  assert(!html.includes('sidebar-left') && !html.includes('sidebar-right'), 'No sidebar classes should be present');
+
+  console.log('  ✓ HTTP 200 verified. Header present, Footer removed, No sidebars, Layout confirmed.');
+}
+
 console.log('\n🎉 ALL TOOLNOVA DISCOUNT CALCULATOR TESTS PASSED WITH 100% SUCCESS!\n');

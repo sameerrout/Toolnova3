@@ -28,6 +28,9 @@ import { PdfPageNumbersConverter } from '@/components/tools/PdfPageNumbersConver
 import { OrganizePdfConverter } from '@/components/tools/OrganizePdfConverter';
 import { CompressPdfConverter } from '@/components/tools/CompressPdfConverter';
 import { QrCodeGeneratorConverter } from '@/components/tools/QrCodeGeneratorConverter';
+import { PdfToImageConverter } from '@/components/tools/PdfToImageConverter';
+import { ProtectPdfConverter } from '@/components/tools/ProtectPdfConverter';
+import { PdfToPowerpointConverter } from '@/components/tools/PdfToPowerpointConverter';
 import { trackToolEvent } from '@/lib/analytics/tracker';
 import '@/tools'; // Ensures tools are registered in client bundle
 
@@ -41,6 +44,18 @@ export function ToolRunner({ toolId }: ToolRunnerProps) {
       trackToolEvent(toolId, 'tool_opened');
     }
   }, [toolId]);
+
+  if (toolId === 'pdf-to-powerpoint' || toolId === 'pdf-to-pptx' || toolId === 'pdf2pptx') {
+    return <PdfToPowerpointConverter />;
+  }
+
+  if (toolId === 'protect-pdf' || toolId === 'pdf-protect') {
+    return <ProtectPdfConverter />;
+  }
+
+  if (toolId === 'pdf-to-image') {
+    return <PdfToImageConverter />;
+  }
 
   if (toolId === 'qr-code-generator' || toolId === 'qr-generator') {
     return <QrCodeGeneratorConverter />;

@@ -116,4 +116,32 @@ console.log('\nTest 6: Safety against Zero, Negative, and NaN...');
   console.log('  ✓ Zero, negative, and NaN safely handled');
 }
 
+// 7. TEST: Verifying HTTP response of /gst-calculator
+console.log('\nTest 7: Verifying HTTP response of /gst-calculator...');
+{
+  const response = await fetch('http://localhost:3000/gst-calculator');
+  assert.strictEqual(response.status, 200, 'Route should return HTTP 200 OK');
+  const html = await response.text();
+
+  // Verify Header & Redesign elements
+  assert(html.includes('GST Calculator'), 'HTML must include GST Calculator');
+  assert(html.includes('v1.0.0'), 'HTML must include v1.0.0 badge');
+  assert(html.includes('Calculations stay on your device'), 'HTML must include privacy badge');
+  assert(html.includes('Add GST (Exclusive)'), 'HTML must include Add GST mode');
+  assert(html.includes('Remove GST (Inclusive)'), 'HTML must include Remove GST mode');
+  assert(html.includes('Amount Before GST'), 'HTML must include Amount Before GST');
+  assert(html.includes('Calculate GST'), 'HTML must include Calculate GST button');
+  assert(html.includes('Final Invoice Amount'), 'HTML must include Final Invoice Amount hero card');
+
+  // Verify Footer is REMOVED
+  assert(!html.includes('© 2026 Toolino. All rights reserved.'), 'Footer copyright should NOT be present on gst-calculator page');
+  assert(!html.includes('Created by Sameer Rout &amp; Sampangi Sony'), 'Footer credits should NOT be present on gst-calculator page');
+
+  // Verify NO Sidebars
+  assert(!html.includes('sidebar-left') && !html.includes('sidebar-right'), 'No sidebar classes should be present');
+
+  console.log('  ✓ HTTP 200 verified. Header present, Footer removed, No sidebars, Layout confirmed.');
+}
+
 console.log('\n🎉 ALL TOOLNOVA GST CALCULATOR TESTS PASSED WITH 100% SUCCESS!\n');
+

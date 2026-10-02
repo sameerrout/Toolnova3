@@ -15,7 +15,11 @@ const urls = [
     'http://localhost:3000/tools/edit-pdf',
     'http://localhost:3000/tools/pdf-to-image',
     'http://localhost:3000/tools/protect-pdf',
-    'http://localhost:3000/tools/pdf-to-powerpoint'
+    'http://localhost:3000/tools/pdf-to-powerpoint',
+    'http://localhost:3000/background-remover',
+    'http://localhost:3000/tools/background-remover',
+    'http://localhost:3000/image-converter',
+    'http://localhost:3000/tools/image-converter'
 ];
 
 async function checkAll() {

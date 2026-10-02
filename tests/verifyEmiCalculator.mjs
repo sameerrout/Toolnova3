@@ -152,4 +152,29 @@ console.log('\nTest 7: Indian Currency Formatter verification...');
   console.log(`  ✓ Indian numbering format (Lakhs and Crores) verified`);
 }
 
+// 8. TEST: Live HTTP endpoint verification of /emi-calculator
+console.log('\nTest 8: Verifying HTTP response of /emi-calculator...');
+{
+  const response = await fetch('http://localhost:3000/emi-calculator');
+  assert.strictEqual(response.status, 200, 'Route should return HTTP 200 OK');
+  const html = await response.text();
+
+  // Verify Header & Redesign
+  assert(html.includes('EMI Calculator'), 'HTML must include EMI Calculator');
+  assert(html.includes('v1.0.0'), 'HTML must include v1.0.0 badge');
+  assert(html.includes('Your loan details stay on your device'), 'HTML must include privacy badge');
+  assert(html.includes('Calculate EMI'), 'HTML must include Calculate EMI button');
+  assert(html.includes('Your Monthly EMI'), 'HTML must include Monthly EMI card');
+  assert(html.includes('Payment Breakdown'), 'HTML must include Payment Breakdown');
+
+  // Verify Footer is REMOVED
+  assert(!html.includes('© 2026 Toolino. All rights reserved.'), 'Footer copyright should NOT be present on emi-calculator page');
+  assert(!html.includes('Created by Sameer Rout &amp; Sampangi Sony'), 'Footer credits should NOT be present on emi-calculator page');
+
+  // Verify NO Sidebars
+  assert(!html.includes('sidebar-left') && !html.includes('sidebar-right'), 'No sidebar classes should be present');
+
+  console.log('  ✓ HTTP 200 verified. Header present, Footer removed, No sidebars, Layout confirmed.');
+}
+
 console.log('\n🎉 ALL TOOLNOVA EMI CALCULATOR TESTS PASSED WITH 100% SUCCESS!\n');

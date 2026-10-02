@@ -29,7 +29,26 @@ export function Footer() {
     pathname?.includes('image-resizer') ||
     pathname?.includes('resize-image') ||
     pathname?.includes('edit-pdf') ||
-    pathname?.includes('pdf-editor')
+    pathname?.includes('pdf-editor') ||
+    pathname?.includes('protect-pdf') ||
+    pathname?.includes('pdf-protect') ||
+    pathname?.includes('pdf-to-powerpoint') ||
+    pathname?.includes('pdf-to-pptx') ||
+    pathname?.includes('background-remover') ||
+    pathname?.includes('image-converter') ||
+    pathname?.includes('convert-image') ||
+    pathname?.includes('image-to-text') ||
+    pathname?.includes('image-ocr') ||
+    pathname?.includes('passport-photo-maker') ||
+    pathname?.includes('passport-photo') ||
+    pathname?.includes('passport-maker') ||
+    pathname?.includes('word-counter') ||
+    pathname?.includes('json-formatter') ||
+    pathname?.includes('age-calculator') ||
+    pathname?.includes('percentage-calculator') ||
+    pathname?.includes('emi-calculator') ||
+    pathname?.includes('discount-calculator') ||
+    pathname?.includes('gst-calculator')
   ) {
     return null;
   }

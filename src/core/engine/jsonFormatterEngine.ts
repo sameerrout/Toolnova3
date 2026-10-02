@@ -133,6 +133,41 @@ export function formatJson(rawText: string, indent: IndentOption): string {
 }
 
 /**
+ * Sorts object keys alphabetically and formats JSON
+ */
+export function sortJsonKeys(rawText: string, indent: IndentOption = '2-spaces'): string {
+  const val = validateJson(rawText);
+  if (!val.isValid) {
+    throw new Error(val.message);
+  }
+
+  function sortRecursive(item: any): any {
+    if (item === null || typeof item !== 'object') return item;
+    if (Array.isArray(item)) return item.map(sortRecursive);
+    return Object.keys(item)
+      .sort()
+      .reduce((acc: Record<string, any>, key: string) => {
+        acc[key] = sortRecursive(item[key]);
+        return acc;
+      }, {});
+  }
+
+  const sorted = sortRecursive(val.parsed);
+  switch (indent) {
+    case '2-spaces':
+      return JSON.stringify(sorted, null, 2);
+    case '4-spaces':
+      return JSON.stringify(sorted, null, 4);
+    case 'tab':
+      return JSON.stringify(sorted, null, '\t');
+    case 'minify':
+      return JSON.stringify(sorted);
+    default:
+      return JSON.stringify(sorted, null, 2);
+  }
+}
+
+/**
  * Automatically repairs common JSON syntax mistakes:
  * - Trailing commas in arrays and objects
  * - Single quotes instead of double quotes
