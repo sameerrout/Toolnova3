@@ -1,40 +1,78 @@
 {
-    "name": "toolino",
-    "version": "1.0.0",
-    "private": true,
-    "description": "Toolnova - Privacy-first common tool platform",
-    "scripts": {
-        "dev": "next dev",
-        "build": "next build",
-        "start": "next start",
-        "lint": "next lint",
-        "type-check": "tsc --noEmit",
-        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs && node tests/verifyUnit.mjs && node --experimental-strip-types tests/verifyEmiCalculator.mjs && node --experimental-strip-types tests/verifyDiscountCalculator.mjs && node tests/verifyPdfSummarizer.mjs && node --experimental-strip-types tests/verifyGstCalculator.mjs && node tests/verifyManagerAnalytics.mjs && node tests/verifyPdfEditorSimplified.mjs && node tests/verifyMergePdfWorkflow.mjs && node tests/verifySplitPdfWorkflow.mjs && node tests/verifyRotatePdfWorkflow.mjs && node tests/verifyWatermarkPdfWorkflow.mjs && node tests/verifyPdfPageNumbersWorkflow.mjs && node tests/verifyOrganizePdfWorkflow.mjs && node tests/verifyCompressPdfWorkflow.mjs && node tests/verifyQrCodeWorkflow.mjs && node tests/verifyImageCompressorWorkflow.mjs && node tests/verifyImageResizerWorkflow.mjs && node tests/verifyEditPdfWorkflow.mjs && node tests/verifyPdfToImageWorkflow.mjs && node tests/verifyProtectPdfWorkflow.mjs && node tests/verifyPdfToPowerpointWorkflow.mjs && node tests/verifyBackgroundRemoverWorkflow.mjs && node tests/verifyImageConverterWorkflow.mjs && node tests/verifyImageToTextWorkflow.mjs && node --experimental-strip-types tests/verifyWordCounterWorkflow.mjs && node --experimental-strip-types tests/verifyJsonFormatterWorkflow.mjs && node --experimental-strip-types tests/verifyAgeCalculatorWorkflow.mjs && node --experimental-strip-types tests/verifyPercentageCalculatorWorkflow.mjs"
-    },
-    "dependencies": {
-        "@pdfsmaller/pdf-encrypt": "^1.2.0",
-        "@types/qrcode": "^1.5.6",
-        "clsx": "^2.1.1",
-        "docx": "^9.7.1",
-        "jszip": "^3.10.2",
-        "lucide-react": "^0.475.0",
-        "mammoth": "^1.12.2",
-        "next": "^15.1.7",
-        "pdf-lib": "^1.17.1",
-        "pdfjs-dist": "^3.11.174",
-        "pptxgenjs": "^4.0.1",
-        "qrcode": "^1.5.4",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "tailwind-merge": "^2.6.0"
-    },
-    "devDependencies": {
-        "@types/node": "^22.13.4",
-        "@types/react": "^19.0.10",
-        "@types/react-dom": "^19.0.4",
-        "autoprefixer": "^10.4.20",
-        "postcss": "^8.5.2",
-        "tailwindcss": "^3.4.17",
-        "typescript": "^5.7.3"
-    }
+  "name": "toolnova",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Toolnova - privacy-first online tools that run entirely in your browser. No uploads, no server processing.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "predev": "node scripts/generate-redirects.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/generate-icons.mjs && node scripts/generate-redirects.mjs",
+    "build": "next build",
+    "postbuild": "node scripts/check-bundle-size.mjs",
+    "start": "next start",
+    "preview": "npx --yes serve out -l 4173",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:zip": "vitest run tests/zip",
+    "test:pdf": "vitest run tests/pdf",
+    "test:image": "vitest run tests/image",
+    "test:calculators": "vitest run tests/calculators",
+    "test:text": "vitest run tests/text",
+    "test:seo": "vitest run tests/seo",
+    "icons": "node scripts/generate-icons.mjs",
+    "redirects": "node scripts/generate-redirects.mjs",
+    "vendor-models": "node scripts/vendor-models.mjs",
+    "check:size": "node scripts/check-bundle-size.mjs",
+    "verify": "npm run type-check && npm run lint && npm run test:unit && npm run build",
+    "clean": "node scripts/clean.mjs",
+    "deploy": "bash deploy/deploy.sh"
+  },
+  "dependencies": {
+    "@imgly/background-removal": "1.7.0",
+    "@pdfsmaller/pdf-encrypt": "^1.2.0",
+    "clsx": "2.1.1",
+    "fflate": "0.8.3",
+    "lucide-react": "1.50.0",
+    "next": "15.5.27",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "5.7.284",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "3.7.0",
+    "tesseract.js": "7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.4",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "autoprefixer": "10.4.20",
+    "eslint": "9.39.5",
+    "eslint-config-next": "15.5.27",
+    "jsdom": "30.1.1",
+    "postcss": "8.5.2",
+    "tailwindcss": "3.4.19",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "onnxruntime-web": "1.21.0"
+  },
+  "browserslist": [
+    "chrome >= 100",
+    "edge >= 100",
+    "firefox >= 100",
+    "safari >= 15.4",
+    "not dead"
+  ]
 }

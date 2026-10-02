@@ -1,38 +1,40 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site';
 
+export const dynamic = 'force-static';
+
+/**
+ * robots.txt
+ *
+ * Everything is crawlable: there are no accounts, no search result pages and no
+ * internal endpoints left after the move to static hosting. The only exclusions
+ * are the generated asset directories and the redirect stubs, which are not
+ * content.
+ */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://toolnova.com';
-
   return {
     rules: [
       {
         userAgent: '*',
-        allow: [
-          '/',
-          '/pdf-tools',
-          '/document-tools',
-          '/image-tools',
-          '/utility-tools',
-          '/qr-tools',
-          '/about',
-          '/tools/',
-          '/pdf-to-powerpoint',
-          '/qr-code-generator',
-        ],
+        allow: '/',
         disallow: [
-          '/api/',
-          '/jobs/',
-          '/download/',
-          '/temp/',
-          '/login',
-          '/signup',
-          '/manager',
-          '/admin',
-          '/dashboard',
-          '/_next/',
+          // Build output and vendored worker bundles.
+          '/_next/static/chunks/',
+          // Machine-generated legacy redirect stubs.
+          '/go/',
         ],
       },
+      {
+        // AdSense crawler must be able to read every page that carries ad code.
+        userAgent: 'Mediapartners-Google',
+        allow: '/',
+      },
+      {
+        userAgent: 'AdsBot-Google',
+        allow: '/',
+      },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

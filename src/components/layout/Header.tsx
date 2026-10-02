@@ -1,255 +1,225 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+/**
+ * Site header.
+ *
+ * Navigation is derived from the category registry, so a new tool or category
+ * appears here automatically. Fully keyboard accessible: the mobile drawer traps
+ * focus, closes on Escape and on route change, and the toggle exposes
+ * `aria-expanded`.
+ *
+ * There is no login link because the site has no accounts.
+ */
+
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { LogOut, User, ChevronDown, Menu, X, ShieldCheck } from 'lucide-react';
+import { ChevronDown, Menu, X, ShieldCheck } from 'lucide-react';
+import { Logo } from './Logo';
+import { CATEGORY_META, CATEGORY_ORDER } from '@/data/categories';
+import { getToolsByCategory } from '@/data/toolRegistry';
+import { toolPath } from '@/lib/tools';
+import { BRAND } from '@/lib/site';
+import { cn } from '@/lib/utils/cn';
 
 export function Header() {
   const pathname = usePathname();
-  const { user, isLoading, logout } = useAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isManager = Boolean(
-    user &&
-      (user.managerAccess === true ||
-        (user.email &&
-          ['sameerrout2004@gmail.com', 'sonysampangi9@gmail.com'].includes(
-            user.email.toLowerCase().trim()
-          )))
-  );
-
-  // Close dropdown on outside click
+  // Close everything on navigation.
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    setMobileOpen(false);
+    setOpenMenu(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const first = drawerRef.current?.querySelector<HTMLElement>('a[href], button');
+    first?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
   }, []);
 
+  const scheduleClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpenMenu(null), 120);
+  };
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-xs">
-      <div className="w-full px-6 py-3 flex justify-between items-center max-w-7xl mx-auto">
-        {/* Logo Left Edge */}
-        <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-          <Image
-            src="/logo1.png"
-            alt="Toolino Logo"
-            width={48}
-            height={48}
-            className="h-12 w-12 object-contain group-hover:scale-110 transition duration-300"
-            priority
-          />
-          <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-            Tool<span className="text-blue-600">ino</span>
-          </span>
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="flex items-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600"
+        >
+          <Logo />
+          <span className="sr-only">{`${BRAND.name} home`}</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 text-slate-600 font-medium text-sm">
-          <Link href="/" className="hover:text-blue-600 transition">
-            Home
-          </Link>
-          <Link href="/about" className="hover:text-blue-600 transition">
-            About
-          </Link>
-
-          {/* Manager link - strictly rendered only for ADMIN and CO_DEVELOPER */}
-          {isManager && (
-            <Link
-              href="/manager"
-              className={`transition font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-2xs ${
-                pathname === '/manager'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-blue-600 bg-blue-50/90 hover:bg-blue-100/90 border border-blue-200/80'
-              }`}
+        <nav aria-label="Main" className="hidden lg:flex lg:items-center lg:gap-1">
+          <div
+            className="relative"
+            onMouseEnter={() => {
+              cancelClose();
+              setOpenMenu('tools');
+            }}
+            onMouseLeave={scheduleClose}
+          >
+            <button
+              type="button"
+              aria-expanded={openMenu === 'tools'}
+              aria-haspopup="true"
+              onClick={() => setOpenMenu(openMenu === 'tools' ? null : 'tools')}
+              className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
             >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Manager</span>
-            </Link>
-          )}
+              All tools
+              <ChevronDown aria-hidden="true" className="h-4 w-4" />
+            </button>
 
-          {/* Auth State */}
-          {user ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50/70 py-1 pl-1.5 pr-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition cursor-pointer"
-                aria-label="User menu"
-              >
-                {/* User Avatar Image or Generated Avatar */}
-                {user.profile_image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.profile_image}
-                    alt={user.name}
-                    className="h-7 w-7 rounded-full object-cover shadow-2xs"
-                  />
-                ) : (
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="max-w-[120px] truncate">{user.name}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-              </button>
-
-              {/* User Dropdown */}
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="px-3 py-2 border-b border-slate-100">
-                    <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
-                  </div>
-
-                  <div className="pt-1">
-                    {isManager && (
-                      <Link
-                        href="/manager"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition cursor-pointer mb-1"
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        <span>Manager Dashboard</span>
-                      </Link>
-                    )}
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setDropdownOpen(false);
-                        await logout();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Log Out</span>
-                    </button>
-                  </div>
+            {openMenu === 'tools' ? (
+              <div className="absolute left-0 top-full z-50 w-[52rem] pt-2">
+                <div className="grid grid-cols-3 gap-x-6 gap-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+                  {CATEGORY_ORDER.map((slug) => {
+                    const meta = CATEGORY_META[slug];
+                    const tools = getToolsByCategory(slug);
+                    return (
+                      <div key={slug}>
+                        <Link
+                          href={`/tools/${slug}/`}
+                          className="text-sm font-semibold text-brand-800 hover:underline"
+                        >
+                          {meta.navLabel}
+                        </Link>
+                        <ul className="mt-2 space-y-1.5">
+                          {tools.map((tool) => (
+                            <li key={tool.slug}>
+                              <Link
+                                href={toolPath(tool.slug)}
+                                className="block rounded text-sm text-slate-600 transition hover:text-brand-700"
+                              >
+                                {tool.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </div>
+              </div>
+            ) : null}
+          </div>
+
+          {CATEGORY_ORDER.slice(0, 4).map((slug) => (
+            <Link
+              key={slug}
+              href={`/tools/${slug}/`}
+              className={cn(
+                'rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600',
+                pathname.startsWith(`/tools/${slug}/`)
+                  ? 'bg-brand-50 text-brand-800'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
               )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 ml-2">
-              <Link
-                href="/login"
-                className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition text-xs font-semibold"
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-semibold shadow-xs"
-              >
-                Sign Up
-              </Link>
-            </div>
-          )}
+            >
+              {CATEGORY_META[slug].navLabel}
+            </Link>
+          ))}
+
+          <Link
+            href="/blog/"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            Guides
+          </Link>
         </nav>
 
-        {/* Mobile menu trigger */}
-        <div className="flex md:hidden items-center gap-3">
-          {user && (
-            <div className="flex items-center gap-2">
-              {user.profile_image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.profile_image}
-                  alt={user.name}
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="p-1.5 text-slate-600 hover:text-slate-900 rounded-lg border border-slate-200"
-            aria-label="Toggle navigation menu"
+        <div className="ml-auto hidden items-center gap-2 lg:flex">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800">
+            <ShieldCheck aria-hidden="true" className="h-3.5 w-3.5" />
+            Files never uploaded
+          </span>
+          <Link
+            href="/tools/create-zip/"
+            className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+            Create a ZIP
+          </Link>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setMobileOpen((open) => !open)}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-nav"
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+          className="ml-auto rounded-lg p-2 text-slate-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 lg:hidden"
+        >
+          {mobileOpen ? (
+            <X aria-hidden="true" className="h-5 w-5" />
+          ) : (
+            <Menu aria-hidden="true" className="h-5 w-5" />
+          )}
+        </button>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-100 bg-white px-6 py-4 space-y-3 shadow-md">
-          <Link
-            href="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-slate-700 hover:text-blue-600 py-1"
-          >
-            Home
-          </Link>
-          <Link
-            href="/about"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm font-medium text-slate-700 hover:text-blue-600 py-1"
-          >
-            About
-          </Link>
-          {isManager && (
-            <Link
-              href="/manager"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              <span>Manager Dashboard</span>
+      {mobileOpen ? (
+        <div
+          id="mobile-nav"
+          ref={drawerRef}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setMobileOpen(false);
+          }}
+          className="fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto border-t border-slate-200 bg-white p-4 lg:hidden"
+        >
+          <nav aria-label="Mobile">
+            {CATEGORY_ORDER.map((slug) => (
+              <details key={slug} className="border-b border-slate-100 py-2">
+                <summary className="cursor-pointer list-none py-2 text-base font-semibold text-slate-900">
+                  <Link href={`/tools/${slug}/`} className="hover:text-brand-700">
+                    {CATEGORY_META[slug].navLabel}
+                  </Link>
+                </summary>
+                <ul className="mt-1 space-y-1 pl-3">
+                  {getToolsByCategory(slug).map((tool) => (
+                    <li key={tool.slug}>
+                      <Link
+                        href={toolPath(tool.slug)}
+                        className="block py-1.5 text-sm text-slate-600 hover:text-brand-700"
+                      >
+                        {tool.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+            <Link href="/blog/" className="block py-3 text-base font-semibold text-slate-900">
+              Guides
             </Link>
-          )}
-
-          <div className="pt-2 border-t border-slate-100">
-            {user ? (
-              <div className="space-y-3">
-                <div className="text-xs text-slate-500">
-                  Logged in as <span className="font-semibold text-slate-800">{user.email}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setMobileMenuOpen(false);
-                    await logout();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg bg-red-50 py-2.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Log Out</span>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-center py-2 border border-blue-600 text-blue-600 rounded-lg text-xs font-semibold"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-center py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold shadow-xs"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
-          </div>
+            <Link href="/about/" className="block py-3 text-base font-semibold text-slate-900">
+              About
+            </Link>
+            <Link href="/contact/" className="block py-3 text-base font-semibold text-slate-900">
+              Contact
+            </Link>
+          </nav>
         </div>
-      )}
+      ) : null}
     </header>
   );
 }

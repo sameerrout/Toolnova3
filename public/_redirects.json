@@ -1,0 +1,565 @@
+{
+  "generatedAt": "2026-10-02T19:39:46.871Z",
+  "redirects": [
+    {
+      "from": "/files-to-zip",
+      "to": "/tools/create-zip/",
+      "status": 301
+    },
+    {
+      "from": "/folder-to-zip",
+      "to": "/tools/create-zip/",
+      "status": 301
+    },
+    {
+      "from": "/zip-files",
+      "to": "/tools/create-zip/",
+      "status": 301
+    },
+    {
+      "from": "/create-zip",
+      "to": "/tools/create-zip/",
+      "status": 301
+    },
+    {
+      "from": "/zip",
+      "to": "/tools/create-zip/",
+      "status": 301
+    },
+    {
+      "from": "/unzip",
+      "to": "/tools/extract-zip/",
+      "status": 301
+    },
+    {
+      "from": "/unzip-online",
+      "to": "/tools/extract-zip/",
+      "status": 301
+    },
+    {
+      "from": "/open-zip",
+      "to": "/tools/extract-zip/",
+      "status": 301
+    },
+    {
+      "from": "/extract-files",
+      "to": "/tools/extract-zip/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-merger",
+      "to": "/tools/merge-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/combine-pdf",
+      "to": "/tools/merge-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/join-pdf",
+      "to": "/tools/merge-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/merge-pdf-online",
+      "to": "/tools/merge-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-splitter",
+      "to": "/tools/split-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/split-pdf-online",
+      "to": "/tools/split-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/extract-pdf-pages",
+      "to": "/tools/split-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-compressor",
+      "to": "/tools/compress-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/reduce-pdf-size",
+      "to": "/tools/compress-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/shrink-pdf",
+      "to": "/tools/compress-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-rotator",
+      "to": "/tools/rotate-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/rotate-pdf-online",
+      "to": "/tools/rotate-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/turn-pdf-pages",
+      "to": "/tools/rotate-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/add-watermark-to-pdf",
+      "to": "/tools/watermark-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-watermark",
+      "to": "/tools/watermark-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/stamp-pdf",
+      "to": "/tools/watermark-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-page-numbering",
+      "to": "/tools/pdf-page-numbers/",
+      "status": 301
+    },
+    {
+      "from": "/number-pdf-pages",
+      "to": "/tools/pdf-page-numbers/",
+      "status": 301
+    },
+    {
+      "from": "/add-pdf-page-numbers",
+      "to": "/tools/pdf-page-numbers/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-organizer",
+      "to": "/tools/organize-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/reorder-pdf-pages",
+      "to": "/tools/organize-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/delete-pdf-pages",
+      "to": "/tools/organize-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-protect",
+      "to": "/tools/protect-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/password-protect-pdf",
+      "to": "/tools/protect-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/encrypt-pdf",
+      "to": "/tools/protect-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/jpg-to-pdf",
+      "to": "/tools/image-to-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/png-to-pdf",
+      "to": "/tools/image-to-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/images-to-pdf",
+      "to": "/tools/image-to-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/photo-to-pdf",
+      "to": "/tools/image-to-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/pdf2image",
+      "to": "/tools/pdf-to-image/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-jpg",
+      "to": "/tools/pdf-to-image/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-png",
+      "to": "/tools/pdf-to-image/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-image-converter",
+      "to": "/tools/pdf-to-image/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-editor",
+      "to": "/tools/edit-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/annotate-pdf",
+      "to": "/tools/edit-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/write-on-pdf",
+      "to": "/tools/edit-pdf/",
+      "status": 301
+    },
+    {
+      "from": "/image-compressor",
+      "to": "/tools/compress-image/",
+      "status": 301
+    },
+    {
+      "from": "/compress-jpg",
+      "to": "/tools/compress-image/",
+      "status": 301
+    },
+    {
+      "from": "/compress-png",
+      "to": "/tools/compress-image/",
+      "status": 301
+    },
+    {
+      "from": "/reduce-image-size",
+      "to": "/tools/compress-image/",
+      "status": 301
+    },
+    {
+      "from": "/image-resizer",
+      "to": "/tools/resize-image/",
+      "status": 301
+    },
+    {
+      "from": "/resize-jpg",
+      "to": "/tools/resize-image/",
+      "status": 301
+    },
+    {
+      "from": "/scale-image",
+      "to": "/tools/resize-image/",
+      "status": 301
+    },
+    {
+      "from": "/change-image-size",
+      "to": "/tools/resize-image/",
+      "status": 301
+    },
+    {
+      "from": "/image-converter",
+      "to": "/tools/convert-image/",
+      "status": 301
+    },
+    {
+      "from": "/convert-to-webp",
+      "to": "/tools/convert-image/",
+      "status": 301
+    },
+    {
+      "from": "/png-to-jpg",
+      "to": "/tools/convert-image/",
+      "status": 301
+    },
+    {
+      "from": "/jpg-to-png",
+      "to": "/tools/convert-image/",
+      "status": 301
+    },
+    {
+      "from": "/background-remover",
+      "to": "/tools/remove-background/",
+      "status": 301
+    },
+    {
+      "from": "/remove-bg",
+      "to": "/tools/remove-background/",
+      "status": 301
+    },
+    {
+      "from": "/bg-remover",
+      "to": "/tools/remove-background/",
+      "status": 301
+    },
+    {
+      "from": "/transparent-background",
+      "to": "/tools/remove-background/",
+      "status": 301
+    },
+    {
+      "from": "/image-to-text",
+      "to": "/tools/image-to-text/",
+      "status": 301
+    },
+    {
+      "from": "/ocr",
+      "to": "/tools/image-to-text/",
+      "status": 301
+    },
+    {
+      "from": "/image-ocr",
+      "to": "/tools/image-to-text/",
+      "status": 301
+    },
+    {
+      "from": "/text-from-image",
+      "to": "/tools/image-to-text/",
+      "status": 301
+    },
+    {
+      "from": "/passport-photo-maker",
+      "to": "/tools/passport-photo/",
+      "status": 301
+    },
+    {
+      "from": "/passport-photo",
+      "to": "/tools/passport-photo/",
+      "status": 301
+    },
+    {
+      "from": "/passport-size-photo",
+      "to": "/tools/passport-photo/",
+      "status": 301
+    },
+    {
+      "from": "/visa-photo",
+      "to": "/tools/passport-photo/",
+      "status": 301
+    },
+    {
+      "from": "/word-counter",
+      "to": "/tools/word-counter/",
+      "status": 301
+    },
+    {
+      "from": "/character-counter",
+      "to": "/tools/word-counter/",
+      "status": 301
+    },
+    {
+      "from": "/word-count-tool",
+      "to": "/tools/word-counter/",
+      "status": 301
+    },
+    {
+      "from": "/json-formatter",
+      "to": "/tools/json-formatter/",
+      "status": 301
+    },
+    {
+      "from": "/json-validator",
+      "to": "/tools/json-formatter/",
+      "status": 301
+    },
+    {
+      "from": "/json-beautifier",
+      "to": "/tools/json-formatter/",
+      "status": 301
+    },
+    {
+      "from": "/pretty-print-json",
+      "to": "/tools/json-formatter/",
+      "status": 301
+    },
+    {
+      "from": "/qr-code-generator",
+      "to": "/tools/qr-code-generator/",
+      "status": 301
+    },
+    {
+      "from": "/qr-generator",
+      "to": "/tools/qr-code-generator/",
+      "status": 301
+    },
+    {
+      "from": "/qr-tools",
+      "to": "/tools/qr-code-generator/",
+      "status": 301
+    },
+    {
+      "from": "/free-qr-code",
+      "to": "/tools/qr-code-generator/",
+      "status": 301
+    },
+    {
+      "from": "/age-calculator",
+      "to": "/tools/age-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/how-old-am-i",
+      "to": "/tools/age-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/birthday-calculator",
+      "to": "/tools/age-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/percentage-calculator",
+      "to": "/tools/percentage-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/percent-calculator",
+      "to": "/tools/percentage-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/percentage-change",
+      "to": "/tools/percentage-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/discount-calculator",
+      "to": "/tools/discount-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/sale-price-calculator",
+      "to": "/tools/discount-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/percent-off-calculator",
+      "to": "/tools/discount-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/emi-calculator",
+      "to": "/tools/emi-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/loan-calculator",
+      "to": "/tools/emi-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/mortgage-emi-calculator",
+      "to": "/tools/emi-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/gst-calculator",
+      "to": "/tools/gst-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/gst-inclusive-calculator",
+      "to": "/tools/gst-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/reverse-gst-calculator",
+      "to": "/tools/gst-calculator/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-summarizer",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-analyser",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-analyzer",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/summarize-pdf",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-powerpoint",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-pptx",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf2pptx",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-word",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/pdf-to-docx",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/login",
+      "to": "/",
+      "status": 301
+    },
+    {
+      "from": "/signup",
+      "to": "/",
+      "status": 301
+    },
+    {
+      "from": "/dashboard",
+      "to": "/",
+      "status": 301
+    },
+    {
+      "from": "/admin",
+      "to": "/",
+      "status": 301
+    },
+    {
+      "from": "/manager",
+      "to": "/",
+      "status": 301
+    },
+    {
+      "from": "/download",
+      "to": "/",
+      "status": 301
+    },
+    {
+      "from": "/document-tools",
+      "to": "/tools/pdf-tools/",
+      "status": 301
+    },
+    {
+      "from": "/utility-tools",
+      "to": "/tools/calculators/",
+      "status": 301
+    }
+  ]
+}

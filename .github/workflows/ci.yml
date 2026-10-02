@@ -1,0 +1,61 @@
+name: CI
+
+# Runs on every pull request and on pushes to non-main branches. The deploy
+# workflow already runs the same checks before deploying, so this exists to give
+# fast feedback before a merge.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches-ignore: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Type check, lint, test and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build
+        env:
+          # CI builds must not depend on repository secrets, so use a
+          # deterministic placeholder origin. The build only bakes it into
+          # canonical tags, which the smoke test below does not inspect.
+          NEXT_PUBLIC_SITE_URL: https://toolnova.com
+        run: npm run build
+
+      - name: Check the export is complete
+        run: |
+          set -euo pipefail
+          test -d out || { echo "::error::out/ was not created"; exit 1; }
+          PAGE_COUNT=$(find out -name '*.html' | wc -l)
+          echo "Exported $PAGE_COUNT HTML pages"
+          test "$PAGE_COUNT" -ge 45 || { echo "::error::expected at least 45 pages"; exit 1; }
+
+      - name: Verify the initial JavaScript budget
+        run: node scripts/check-bundle-size.mjs

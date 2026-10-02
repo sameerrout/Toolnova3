@@ -1,185 +1,138 @@
-'use client';
-
-import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { ShieldCheck } from 'lucide-react';
+import { BRAND, COPYRIGHT_YEAR } from '@/lib/site';
+import { CATEGORY_META, CATEGORY_ORDER } from '@/data/categories';
+import { getToolsByCategory } from '@/data/toolRegistry';
+import { toolPath } from '@/lib/tools';
+import { ConsentSettingsLink } from '@/components/consent/ConsentSettingsLink';
 
+/**
+ * Site footer.
+ *
+ * Always rendered, on every route. The previous design hid the footer on 29 of
+ * 33 routes, which removed roughly forty internal links from exactly the pages
+ * that needed them and left most tool pages with a single inbound link.
+ *
+ * It also carries the legal links AdSense review requires to be reachable from
+ * anywhere on the site.
+ */
 export function Footer() {
-  const pathname = usePathname();
-
-  // Hide footer on standalone focused tools (image-to-pdf, merge-pdf, split-pdf, pdf-to-image, rotate-pdf, watermark-pdf, pdf-page-numbers, organize-pdf, compress-pdf, qr-code-generator, image-compressor)
-  if (
-    pathname?.includes('image-to-pdf') ||
-    pathname?.includes('merge-pdf') ||
-    pathname?.includes('pdf-merger') ||
-    pathname?.includes('split-pdf') ||
-    pathname?.includes('pdf-splitter') ||
-    pathname?.includes('pdf-to-image') ||
-    pathname?.includes('rotate-pdf') ||
-    pathname?.includes('pdf-rotator') ||
-    pathname?.includes('watermark-pdf') ||
-    pathname?.includes('pdf-page-numbers') ||
-    pathname?.includes('organize-pdf') ||
-    pathname?.includes('pdf-organizer') ||
-    pathname?.includes('compress-pdf') ||
-    pathname?.includes('pdf-compressor') ||
-    pathname?.includes('qr-code-generator') ||
-    pathname?.includes('qr-generator') ||
-    pathname?.includes('image-compressor') ||
-    pathname?.includes('image-resizer') ||
-    pathname?.includes('resize-image') ||
-    pathname?.includes('edit-pdf') ||
-    pathname?.includes('pdf-editor') ||
-    pathname?.includes('protect-pdf') ||
-    pathname?.includes('pdf-protect') ||
-    pathname?.includes('pdf-to-powerpoint') ||
-    pathname?.includes('pdf-to-pptx') ||
-    pathname?.includes('background-remover') ||
-    pathname?.includes('image-converter') ||
-    pathname?.includes('convert-image') ||
-    pathname?.includes('image-to-text') ||
-    pathname?.includes('image-ocr') ||
-    pathname?.includes('passport-photo-maker') ||
-    pathname?.includes('passport-photo') ||
-    pathname?.includes('passport-maker') ||
-    pathname?.includes('word-counter') ||
-    pathname?.includes('json-formatter') ||
-    pathname?.includes('age-calculator') ||
-    pathname?.includes('percentage-calculator') ||
-    pathname?.includes('emi-calculator') ||
-    pathname?.includes('discount-calculator') ||
-    pathname?.includes('gst-calculator')
-  ) {
-    return null;
-  }
-
   return (
-    <footer className="bg-blue-900 text-white py-12 border-t border-blue-800">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
-        {/* Implemented Tools Column 1 */}
-        <div className="space-y-2">
-          <h3 className="font-bold mb-4 text-white text-base">PDF Creation &amp; Edit</h3>
-          <Link href="/tools/image-to-pdf" className="block text-blue-200 hover:text-white transition">
-            Image to PDF
-          </Link>
-          <Link href="/tools/merge-pdf" className="block text-blue-200 hover:text-white transition">
-            Merge PDF
-          </Link>
-          <Link href="/tools/split-pdf" className="block text-blue-200 hover:text-white transition">
-            Split PDF
-          </Link>
-          <Link href="/tools/rotate-pdf" className="block text-blue-200 hover:text-white transition">
-            Rotate PDF
-          </Link>
-          <Link href="/tools/organize-pdf" className="block text-blue-200 hover:text-white transition">
-            Organize PDF
-          </Link>
-          <Link href="/tools/compress-pdf" className="block text-blue-200 hover:text-white transition">
-            Compress PDF
-          </Link>
-          <Link href="/tools/edit-pdf" className="block text-blue-200 hover:text-white transition">
-            Edit PDF
-          </Link>
-          <Link href="/tools/pdf-to-image" className="block text-blue-200 hover:text-white transition">
-            PDF to Image
-          </Link>
-          <Link href="/pdf-summarizer" className="block text-blue-200 hover:text-white transition font-medium">
-            PDF Summarizer
-          </Link>
+    <footer className="mt-16 border-t border-slate-200 bg-slate-50">
+      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-6">
+          <div className="lg:col-span-2">
+            <p className="text-lg font-bold text-slate-900">{BRAND.name}</p>
+            <p className="mt-2 max-w-xs text-sm text-slate-600">{BRAND.description}</p>
+            <p className="mt-4 inline-flex items-start gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+              <ShieldCheck aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                No uploads. No accounts. Your files are processed by your own browser and never sent
+                to a server.
+              </span>
+            </p>
+          </div>
+
+          {CATEGORY_ORDER.map((slug) => (
+            <nav key={slug} aria-label={CATEGORY_META[slug].navLabel}>
+              <h2 className="text-sm font-semibold text-slate-900">
+                <Link href={`/tools/${slug}/`} className="hover:text-brand-700">
+                  {CATEGORY_META[slug].navLabel}
+                </Link>
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {getToolsByCategory(slug).map((tool) => (
+                  <li key={tool.slug}>
+                    <Link
+                      href={toolPath(tool.slug)}
+                      className="text-sm text-slate-600 transition hover:text-brand-700"
+                    >
+                      {tool.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
 
-        {/* Implemented Tools Column 2 */}
-        <div className="space-y-2">
-          <h3 className="font-bold mb-4 text-white text-base">Security &amp; Formats</h3>
-          <Link href="/tools/protect-pdf" className="block text-blue-200 hover:text-white transition">
-            Protect PDF
-          </Link>
-          <Link href="/tools/watermark-pdf" className="block text-blue-200 hover:text-white transition">
-            Watermark PDF
-          </Link>
-          <Link href="/tools/pdf-page-numbers" className="block text-blue-200 hover:text-white transition">
-            PDF Page Numbers
-          </Link>
-          <Link href="/tools/pdf-to-powerpoint" className="block text-blue-200 hover:text-white transition">
-            PDF to PowerPoint
-          </Link>
-          <Link href="/image-compressor" className="block text-blue-200 hover:text-white transition font-medium">
-            Image Compressor
-          </Link>
-          <Link href="/image-resizer" className="block text-blue-200 hover:text-white transition font-medium">
-            Image Resizer
-          </Link>
-          <Link href="/background-remover" className="block text-blue-200 hover:text-white transition font-medium">
-            Background Remover
-          </Link>
-          <Link href="/image-converter" className="block text-blue-200 hover:text-white transition font-medium">
-            Image Converter
-          </Link>
-          <Link href="/passport-photo-maker" className="block text-blue-200 hover:text-white transition font-medium">
-            Passport Photo Maker
-          </Link>
-          <Link href="/image-to-text" className="block text-blue-200 hover:text-white transition font-medium">
-            Image to Text (OCR)
-          </Link>
-          <Link href="/word-counter" className="block text-blue-200 hover:text-white transition font-medium">
-            Word Counter
-          </Link>
-          <Link href="/json-formatter" className="block text-blue-200 hover:text-white transition font-medium">
-            JSON Formatter
-          </Link>
-          <Link href="/age-calculator" className="block text-blue-200 hover:text-white transition font-medium">
-            Age Calculator
-          </Link>
-          <Link href="/percentage-calculator" className="block text-blue-200 hover:text-white transition font-medium">
-            Percentage Calculator
-          </Link>
-          <Link href="/emi-calculator" className="block text-blue-200 hover:text-white transition font-medium">
-            EMI Calculator
-          </Link>
-          <Link href="/discount-calculator" className="block text-blue-200 hover:text-white transition font-medium">
-            Discount Calculator
-          </Link>
-          <Link href="/gst-calculator" className="block text-blue-200 hover:text-white transition font-medium">
-            GST Calculator
-          </Link>
-        </div>
+        <div className="mt-10 grid gap-8 border-t border-slate-200 pt-8 sm:grid-cols-3">
+          <nav aria-label="Company">
+            <h2 className="text-sm font-semibold text-slate-900">Company</h2>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <Link href="/about/" className="text-slate-600 transition hover:text-brand-700">
+                  About us
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact/" className="text-slate-600 transition hover:text-brand-700">
+                  Contact us
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog/" className="text-slate-600 transition hover:text-brand-700">
+                  Guides and articles
+                </Link>
+              </li>
+              <li>
+                <Link href="/tools/" className="text-slate-600 transition hover:text-brand-700">
+                  All tools
+                </Link>
+              </li>
+            </ul>
+          </nav>
 
-        {/* Platform & Account */}
-        <div className="space-y-2">
-          <h3 className="font-bold mb-4 text-white text-base">Navigation</h3>
-          <Link href="/" className="block text-blue-200 hover:text-white transition">
-            Home
-          </Link>
-          <Link href="/about" className="block text-blue-200 hover:text-white transition">
-            About Us
-          </Link>
-          <Link href="/login" className="block text-blue-200 hover:text-white transition">
-            Login
-          </Link>
-          <Link href="/signup" className="block text-blue-200 hover:text-white transition">
-            Sign Up
-          </Link>
-          <Link href="/pdf-tools" className="block text-blue-200 hover:text-white transition">
-            All Tools Catalog
-          </Link>
-        </div>
+          <nav aria-label="Legal">
+            <h2 className="text-sm font-semibold text-slate-900">Legal</h2>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <Link href="/privacy/" className="text-slate-600 transition hover:text-brand-700">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms/" className="text-slate-600 transition hover:text-brand-700">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies/" className="text-slate-600 transition hover:text-brand-700">
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/disclaimer/" className="text-slate-600 transition hover:text-brand-700">
+                  Disclaimer
+                </Link>
+              </li>
+            </ul>
+          </nav>
 
-        {/* Privacy & Security */}
-        <div className="space-y-3 col-span-2 md:col-span-1">
-          <h3 className="font-bold text-white text-base">Privacy &amp; Security</h3>
-          <p className="text-xs text-blue-200 leading-relaxed">
-            Choose from browser-based tools and server-powered conversions. Toolino selects the appropriate processing method for each tool. Server-assisted jobs use isolated temporary sandboxes with automated cleanup.
-          </p>
-          <div className="inline-block rounded-md bg-blue-800/90 border border-blue-700 px-3 py-1 text-xs text-emerald-300 font-semibold">
-            🛡️ Ephemeral &amp; In-Browser Security
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Your privacy choices</h2>
+            <p className="mt-3 text-sm text-slate-600">
+              You can change or withdraw your cookie consent at any time.
+            </p>
+            <ConsentSettingsLink />
+            <p className="mt-4 text-sm text-slate-600">
+              Email:{' '}
+              <a href={`mailto:${BRAND.email}`} className="text-brand-700 underline hover:text-brand-800">
+                {BRAND.email}
+              </a>
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Bottom */}
-      <div className="max-w-7xl mx-auto px-6 mt-10 pt-6 border-t border-blue-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-blue-300 gap-3">
-        <p>© 2026 Toolino. All rights reserved.</p>
-        <p className="text-blue-400">Created by Sameer Rout &amp; Sampangi Sony</p>
+        <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-slate-500">
+            © {COPYRIGHT_YEAR} {BRAND.name}. All rights reserved.
+          </p>
+          <p className="text-xs text-slate-500">
+            Not affiliated with Google, Adobe, Microsoft or any file-format vendor. Product names are
+            used only to describe compatibility.
+          </p>
+        </div>
       </div>
     </footer>
   );

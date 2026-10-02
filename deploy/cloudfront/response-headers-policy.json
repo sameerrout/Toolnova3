@@ -1,0 +1,88 @@
+{
+  "_comment": [
+    "CloudFront Response Headers Policy for Toolnova.",
+    "",
+    "Apply it with:",
+    "  aws cloudfront create-response-headers-policy --response-headers-policy-config file://deploy/cloudfront/response-headers-policy.json",
+    "",
+    "Then attach the returned policy id to your distribution's default cache behaviour:",
+    "  aws cloudfront update-distribution --id <DISTRIBUTION_ID> --distribution-config file://dist-config.json",
+    "or set it in the console under Behaviours > Edit > Response headers policy.",
+    "",
+    "Two deliberate decisions are documented in deploy/cloudfront/README.md:",
+    " 1. script-src includes 'unsafe-inline' because Next.js ships an inline hydration bootstrap.",
+    "    Removing it requires nonce-based CSP, which needs a server or an edge function.",
+    " 2. connect-src/img-src/frame-src allow the Google ad and analytics origins, which AdSense",
+    "    and GA4 both require. Nothing else third-party is permitted."
+  ],
+  "Name": "toolnova-security-headers",
+  "Comment": "HSTS, nosniff, referrer policy, permissions policy, frame options and CSP for Toolnova",
+  "SecurityHeadersConfig": {
+    "XSSProtection": {
+      "Override": true,
+      "Protection": false,
+      "ModeBlock": false
+    },
+    "FrameOptions": {
+      "Override": true,
+      "FrameOption": "DENY"
+    },
+    "ReferrerPolicy": {
+      "Override": true,
+      "ReferrerPolicy": "strict-origin-when-cross-origin"
+    },
+    "ContentTypeOptions": {
+      "Override": true
+    },
+    "StrictTransportSecurity": {
+      "Override": true,
+      "IncludeSubDomains": true,
+      "Preload": true,
+      "AccessControlMaxAgeSec": 63072000
+    },
+    "ContentSecurityPolicy": {
+      "Override": true,
+      "ContentSecurityPolicy": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagservices.com https://adservice.google.com https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://static.doubleclick.net https://cdn.jsdelivr.net https://unpkg.com https://staticimgly.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google-analytics.com https://www.googletagmanager.com https://staticimgly.com https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://cdn.jsdelivr.net https://unpkg.com https://staticimgly.com; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://pagead2.googlesyndication.com; media-src 'self' blob:; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+    }
+  },
+  "CustomHeadersConfig": {
+    "Quantity": 2,
+    "Items": [
+      {
+        "Header": "Permissions-Policy",
+        "Value": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), interest-cohort=()",
+        "Override": true
+      },
+      {
+        "Header": "Cross-Origin-Opener-Policy",
+        "Value": "same-origin-allow-popups",
+        "Override": true
+      }
+    ]
+  },
+  "CorsConfig": {
+    "AccessControlAllowOrigins": {
+      "Quantity": 1,
+      "Items": ["*"]
+    },
+    "AccessControlAllowHeaders": {
+      "Quantity": 1,
+      "Items": ["*"]
+    },
+    "AccessControlAllowMethods": {
+      "Quantity": 3,
+      "Items": ["GET", "HEAD", "OPTIONS"]
+    },
+    "AccessControlAllowCredentials": false,
+    "AccessControlMaxAgeSec": 86400,
+    "OriginOverride": true
+  },
+  "RemoveHeadersConfig": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Header": "X-Powered-By"
+      }
+    ]
+  }
+}

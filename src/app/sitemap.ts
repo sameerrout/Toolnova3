@@ -1,91 +1,65 @@
-import { MetadataRoute } from 'next';
-import { TOOLS_CATALOG } from '@/data/toolsCatalog';
+import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site';
+import { TOOL_REGISTRY } from '@/data/toolRegistry';
+import { CATEGORY_ORDER } from '@/data/categories';
+import { BLOG_POSTS } from '@/content/blog';
+import { toolPath } from '@/lib/tools';
 
-// Canonical clean URL mapping for major tools (§36, §43)
-export const CLEAN_TOOL_URLS: Record<string, string> = {
-  'pdf-to-powerpoint': '/pdf-to-powerpoint',
-  'qr-code-generator': '/qr-code-generator',
-  'image-compressor': '/image-compressor',
-  'image-resizer': '/image-resizer',
-  'background-remover': '/background-remover',
-  'image-converter': '/image-converter',
-  'passport-photo-maker': '/passport-photo-maker',
-  'image-to-text': '/image-to-text',
-  'word-counter': '/word-counter',
-  'json-formatter': '/json-formatter',
-  'age-calculator': '/age-calculator',
-  'percentage-calculator': '/percentage-calculator',
-  'emi-calculator': '/emi-calculator',
-  'discount-calculator': '/discount-calculator',
-  'pdf-summarizer': '/pdf-summarizer',
-  'gst-calculator': '/gst-calculator',
-};
+export const dynamic = 'force-static';
 
-export function getToolCanonicalUrl(toolId: string, baseUrl: string = 'https://toolnova.com'): string {
-  const cleanPath = CLEAN_TOOL_URLS[toolId];
-  return `${baseUrl}${cleanPath || `/tools/${toolId}`}`;
-}
+/**
+ * Fixed content date. Updated deliberately when content changes, so the sitemap
+ * does not claim a fresh modification on every deployment - a timestamp that
+ * changes on each build tells Google nothing.
+ */
+const BUILD_DATE = '2026-01-05T00:00:00.000Z';
 
+/**
+ * sitemap.xml
+ *
+ * Generated from the same registries the site renders from, so a new tool or
+ * article cannot be forgotten. Every canonical URL appears exactly once:
+ *
+ *  - `/tools/<tool>/`      one per tool
+ *  - `/tools/<category>/`  the five hubs
+ *  - `/blog/<slug>/`       one per article
+ *  - the fixed and legal pages
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://toolnova.com';
-  const now = new Date();
+  const buildDate = new Date(BUILD_DATE);
 
-  // Core canonical indexable category and platform pages (§36, §42, §43)
-  // Strictly excludes /login, /signup, /api, /download, and internal endpoints
-  const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/pdf-tools`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/document-tools`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/image-tools`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/utility-tools`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/qr-tools`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-  ];
+  const tools: MetadataRoute.Sitemap = TOOL_REGISTRY.map((tool) => ({
+    url: `${SITE_URL}${toolPath(tool.slug)}`,
+    lastModified: buildDate,
+    changeFrequency: 'weekly',
+    priority: tool.featured ? 0.9 : 0.8,
+  }));
 
-  // Canonical tool landing pages (every tool listed exactly once at its canonical URL)
-  const toolRoutes: MetadataRoute.Sitemap = TOOLS_CATALOG.filter(
-    (t) => t.isAvailable
-  ).map((tool) => ({
-    url: getToolCanonicalUrl(tool.id, baseUrl),
-    lastModified: now,
+  const categories: MetadataRoute.Sitemap = CATEGORY_ORDER.map((slug) => ({
+    url: `${SITE_URL}/tools/${slug}/`,
+    lastModified: buildDate,
     changeFrequency: 'weekly',
     priority: 0.85,
   }));
 
-  return [...staticRoutes, ...toolRoutes];
+  const posts: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}/`,
+    lastModified: new Date(post.updatedAt ?? post.publishedAt),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/`, lastModified: buildDate, changeFrequency: 'daily', priority: 1 },
+    { url: `${SITE_URL}/tools/`, lastModified: buildDate, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${SITE_URL}/blog/`, lastModified: buildDate, changeFrequency: 'weekly', priority: 0.75 },
+    { url: `${SITE_URL}/about/`, lastModified: buildDate, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/contact/`, lastModified: buildDate, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/privacy/`, lastModified: buildDate, changeFrequency: 'yearly', priority: 0.4 },
+    { url: `${SITE_URL}/terms/`, lastModified: buildDate, changeFrequency: 'yearly', priority: 0.4 },
+    { url: `${SITE_URL}/cookies/`, lastModified: buildDate, changeFrequency: 'yearly', priority: 0.4 },
+    { url: `${SITE_URL}/disclaimer/`, lastModified: buildDate, changeFrequency: 'yearly', priority: 0.4 },
+  ];
+
+  return [...staticPages, ...categories, ...tools, ...posts];
 }
