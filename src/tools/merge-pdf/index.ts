@@ -46,10 +46,10 @@ export const mergePdfTool: IToolDefinition<MergePdfOptions> = {
   },
 
   validateFiles: (files: File[]) => {
-    if (files.length < 2) {
+    if (files.length < 1) {
       return {
         valid: false,
-        error: 'Please select at least 2 PDF files to merge.',
+        error: 'Please select at least 1 PDF file.',
       };
     }
     for (const file of files) {

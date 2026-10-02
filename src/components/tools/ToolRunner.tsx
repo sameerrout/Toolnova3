@@ -20,6 +20,7 @@ import { EmiCalculator } from '@/components/tools/EmiCalculator';
 import { DiscountCalculator } from '@/components/tools/DiscountCalculator';
 import { PdfSummarizer } from '@/components/tools/PdfSummarizer';
 import { GstCalculator } from '@/components/tools/GstCalculator';
+import { MergePdfConverter } from '@/components/tools/MergePdfConverter';
 import { trackToolEvent } from '@/lib/analytics/tracker';
 import '@/tools'; // Ensures tools are registered in client bundle
 
@@ -33,6 +34,10 @@ export function ToolRunner({ toolId }: ToolRunnerProps) {
       trackToolEvent(toolId, 'tool_opened');
     }
   }, [toolId]);
+
+  if (toolId === 'merge-pdf') {
+    return <MergePdfConverter />;
+  }
 
   if (toolId === 'image-to-pdf') {
     return <ImageToPdfConverter />;

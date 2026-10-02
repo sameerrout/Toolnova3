@@ -7,8 +7,12 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide footer on image-to-pdf page as requested
-  if (pathname?.includes('image-to-pdf')) {
+  // Hide footer on image-to-pdf and merge-pdf pages as requested
+  if (
+    pathname?.includes('image-to-pdf') ||
+    pathname?.includes('merge-pdf') ||
+    pathname?.includes('pdf-merger')
+  ) {
     return null;
   }
 
