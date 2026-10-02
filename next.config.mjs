@@ -55,6 +55,8 @@ const nextConfig = {
         { source: '/pdf-to-powerpoint', destination: '/tools/pdf-to-powerpoint' },
         { source: '/qr-code-generator', destination: '/tools/qr-code-generator' },
         { source: '/qr-generator', destination: '/tools/qr-code-generator' },
+        { source: '/compress-image', destination: '/image-compressor' },
+        { source: '/image-compress', destination: '/image-compressor' },
         { source: '/pdf-compressor', destination: '/tools/compress-pdf' },
         { source: '/compress-pdf', destination: '/tools/compress-pdf' },
         { source: '/pdf-merger', destination: '/tools/merge-pdf' },
