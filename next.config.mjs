@@ -62,6 +62,7 @@ const nextConfig = {
         { source: '/pdf-rotator', destination: '/tools/rotate-pdf' },
         { source: '/rotate-pdf', destination: '/tools/rotate-pdf' },
         { source: '/watermark-pdf', destination: '/tools/watermark-pdf' },
+        { source: '/pdf-page-numbers', destination: '/tools/pdf-page-numbers' },
     ],
 };
 

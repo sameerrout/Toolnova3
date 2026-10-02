@@ -9,7 +9,7 @@
         "start": "next start",
         "lint": "next lint",
         "type-check": "tsc --noEmit",
-        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs && node tests/verifyUnit.mjs && node tests/verifyEmiCalculator.mjs && node tests/verifyDiscountCalculator.mjs && node tests/verifyPdfSummarizer.mjs && node tests/verifyGstCalculator.mjs && node tests/verifyManagerAnalytics.mjs && node tests/verifyPdfEditorSimplified.mjs && node tests/verifyMergePdfWorkflow.mjs && node tests/verifySplitPdfWorkflow.mjs && node tests/verifyRotatePdfWorkflow.mjs && node tests/verifyWatermarkPdfWorkflow.mjs"
+        "test": "node tests/verifyTools.mjs && node tests/verifyAuth.mjs && node tests/verifyUnit.mjs && node tests/verifyEmiCalculator.mjs && node tests/verifyDiscountCalculator.mjs && node tests/verifyPdfSummarizer.mjs && node tests/verifyGstCalculator.mjs && node tests/verifyManagerAnalytics.mjs && node tests/verifyPdfEditorSimplified.mjs && node tests/verifyMergePdfWorkflow.mjs && node tests/verifySplitPdfWorkflow.mjs && node tests/verifyRotatePdfWorkflow.mjs && node tests/verifyWatermarkPdfWorkflow.mjs && node tests/verifyPdfPageNumbersWorkflow.mjs"
     },
     "dependencies": {
         "@pdfsmaller/pdf-encrypt": "^1.2.0",
