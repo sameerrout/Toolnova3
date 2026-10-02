@@ -25,6 +25,7 @@ import { PassportPhotoTool } from '@/tools/passport-photo/PassportPhotoTool';
 import { WordCounterTool } from '@/tools/word-counter/WordCounterTool';
 import { JsonFormatterTool } from '@/tools/json-formatter/JsonFormatterTool';
 import { QrCodeGeneratorTool } from '@/tools/qr-code-generator/QrCodeGeneratorTool';
+import { PinCodeLookupTool } from '@/tools/pin-code-lookup/PinCodeLookupTool';
 import { AgeCalculatorTool } from '@/tools/age-calculator/AgeCalculatorTool';
 import { PercentageCalculatorTool } from '@/tools/percentage-calculator/PercentageCalculatorTool';
 import { DiscountCalculatorTool } from '@/tools/discount-calculator/DiscountCalculatorTool';
@@ -61,6 +62,7 @@ export const TOOL_COMPONENTS: Record<ToolSlug, ComponentType> = {
   'word-counter': WordCounterTool,
   'json-formatter': JsonFormatterTool,
   'qr-code-generator': QrCodeGeneratorTool,
+  'pin-code-lookup': PinCodeLookupTool,
   'age-calculator': AgeCalculatorTool,
   'percentage-calculator': PercentageCalculatorTool,
   'discount-calculator': DiscountCalculatorTool,

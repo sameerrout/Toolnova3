@@ -254,6 +254,16 @@ export const TOOL_LIMITS: Record<ToolSlug, ToolLimitSpec> = {
     concurrency: 1,
     note: 'Exports up to 2048 px PNG or infinitely scalable SVG.',
   },
+  'pin-code-lookup': {
+    maxFiles: 0,
+    maxFileMb: 0,
+    maxTotalMb: 0,
+    maxOutputMb: 0,
+    maxCanvasEdge: 0,
+    chunkSize: 1,
+    concurrency: 1,
+    note: 'Instant local directory search. Runs entirely in your browser.',
+  },
   'age-calculator': {
     maxFiles: 0,
     maxFileMb: 0,

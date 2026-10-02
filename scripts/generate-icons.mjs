@@ -248,7 +248,6 @@ const BRAND_PRIMARY = [31, 71, 214];
 const BRAND_LIGHT = [188, 211, 255];
 const INK = [15, 23, 42];
 const WHITE = [255, 255, 255];
-const SLATE = [71, 85, 105];
 
 /**
  * Draws the Toolnova mark: a document with a folded corner and a padlock,

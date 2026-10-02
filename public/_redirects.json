@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T19:39:46.871Z",
+  "generatedAt": "2026-10-02T20:14:42.148Z",
   "redirects": [
     {
       "from": "/files-to-zip",
@@ -399,6 +399,26 @@
     {
       "from": "/free-qr-code",
       "to": "/tools/qr-code-generator/",
+      "status": 301
+    },
+    {
+      "from": "/pin-code-lookup",
+      "to": "/tools/pin-code-lookup/",
+      "status": 301
+    },
+    {
+      "from": "/pincode-lookup",
+      "to": "/tools/pin-code-lookup/",
+      "status": 301
+    },
+    {
+      "from": "/pincode-finder",
+      "to": "/tools/pin-code-lookup/",
+      "status": 301
+    },
+    {
+      "from": "/india-pincode",
+      "to": "/tools/pin-code-lookup/",
       "status": 301
     },
     {

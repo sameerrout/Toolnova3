@@ -23,6 +23,7 @@ import { passportPhotoContent } from '@/content/tools/passport-photo';
 import { wordCounterContent } from '@/content/tools/word-counter';
 import { jsonFormatterContent } from '@/content/tools/json-formatter';
 import { qrCodeGeneratorContent } from '@/content/tools/qr-code-generator';
+import { pinCodeLookupContent } from '@/content/tools/pin-code-lookup';
 import { ageCalculatorContent } from '@/content/tools/age-calculator';
 import { percentageCalculatorContent } from '@/content/tools/percentage-calculator';
 import { discountCalculatorContent } from '@/content/tools/discount-calculator';
@@ -59,6 +60,7 @@ export const TOOL_CONTENT: Record<ToolSlug, ToolContent> = {
   'word-counter': wordCounterContent,
   'json-formatter': jsonFormatterContent,
   'qr-code-generator': qrCodeGeneratorContent,
+  'pin-code-lookup': pinCodeLookupContent,
   'age-calculator': ageCalculatorContent,
   'percentage-calculator': percentageCalculatorContent,
   'discount-calculator': discountCalculatorContent,

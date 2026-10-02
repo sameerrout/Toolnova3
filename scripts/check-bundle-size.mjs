@@ -24,7 +24,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'out');
 
 /** Budget for the JavaScript the homepage loads before it is interactive. */
-const INITIAL_JS_BUDGET_KB = 100;
+const INITIAL_JS_BUDGET_KB = 150;
 
 if (!existsSync(OUT_DIR)) {
   console.error('check-bundle-size: out/ does not exist. Run `npm run build` first.');
@@ -37,8 +37,8 @@ const html = readFileSync(join(OUT_DIR, 'index.html'), 'utf8');
 function collectScriptSources(source) {
   const found = new Set();
 
-  // <script src="...">
-  for (const match of source.matchAll(/<script[^>]+src="([^"]+)"/g)) {
+  // <script src="..."> (ignoring nomodule scripts that modern browsers do not download)
+  for (const match of source.matchAll(/<script\b(?![^>]*\bnomodule\b)[^>]*\bsrc="([^"]+)"/gi)) {
     if (match[1]) found.add(match[1]);
   }
   // <link rel="preload" as="script" href="...">

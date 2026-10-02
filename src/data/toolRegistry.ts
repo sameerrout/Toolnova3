@@ -548,6 +548,27 @@ export const TOOL_REGISTRY: ToolRegistryEntry[] = [
     privacyNote:
       'QR codes are generated locally with no account and no tracking redirect. The codes are static, so they keep working forever and never expire.',
   },
+  {
+    slug: 'pin-code-lookup',
+    name: 'PIN Code Lookup',
+    category: 'text-tools',
+    kind: 'text',
+    weight: 'light',
+    metaTitle: 'PIN Code Lookup - Find India Postal Codes Online Free',
+    metaDescription:
+      'Search Indian postal PIN codes by State, District, Sub-District and Village. Instant, accurate postal directory lookup with one-click copy. No signup required.',
+    tagline: 'Find exact 6-digit India postal PIN codes by state, district and village.',
+    accept: [],
+    acceptAttribute: '',
+    outputFormats: ['PIN'],
+    featured: true,
+    related: ['qr-code-generator', 'word-counter', 'json-formatter', 'age-calculator'],
+    legacyPaths: ['/pin-code-lookup', '/pincode-lookup', '/pincode-finder', '/india-pincode'],
+    keyword: 'pin code lookup',
+    secondaryKeywords: ['india pincode finder', 'postal code search', 'village pincode lookup'],
+    privacyNote:
+      'Location lookups run entirely in your browser using a local database. No search terms or locations are ever sent to any server.',
+  },
 
   // =========================================================================
   // Calculators

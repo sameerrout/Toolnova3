@@ -43,7 +43,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-GB" className={inter.variable}>
-      <body className="flex min-h-screen flex-col bg-white font-sans text-slate-800 antialiased">
+      <body className="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
         {/* Skip link: first focusable element on the page. */}
         <a
           href="#main"

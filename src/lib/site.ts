@@ -9,14 +9,14 @@
 
 export const BRAND = {
   /** User-facing brand name. Used in titles, footer, JSON-LD, emails. */
-  name: 'Toolnova',
+  name: 'Toolino',
   /** Short tagline shown in the footer and the manifest. */
-  tagline: 'Private tools that run in your browser',
+  tagline: 'All-in-One Free Online Tools',
   /** Longer positioning line used on the homepage and in the Organization schema. */
   description:
-    'Free online tools for PDFs, images, files and everyday calculations. Every file is processed inside your own browser, so nothing is ever uploaded.',
+    'Free, fast, and privacy-conscious online tools. Convert, edit, and optimize PDFs, images, and documents easily inside your browser without uploading files to servers.',
   /** Public contact address for the Contact page and legal notices. */
-  email: 'support@toolnova.com',
+  email: 'support@toolino.com',
   /** Postal-style locality used in legal pages (kept generic on purpose). */
   jurisdiction: 'England and Wales',
   /** Twitter/X handle, or null when the site has no account yet. */
